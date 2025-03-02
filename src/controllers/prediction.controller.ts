@@ -8,25 +8,44 @@ import { PredictionResult } from "@/models/prediction.model.ts";
 export async function predictPlantDisease(ctx: Context) {
   try {
     // Parse multipart form data to get the uploaded image
-    const body = await ctx.request.body({ type: "form-data" }).value;
-    const formData = await multiParser(body);
+    const body = ctx.request.body();
 
-    if (!formData?.files || !formData.files.image) {
+    // Check if the request has the form data type
+    if (body.type !== "form-data") {
       ctx.response.status = 400;
       ctx.response.body = {
-        error:
-          "No image file provided. Please upload an image with the field name 'image'.",
+        status: "error",
+        message: "Content-Type must be multipart/form-data",
       };
       return;
     }
 
-    // Get the image file and convert to base64
-    const imageFile = formData.files.image;
+    // Get the form data value
+    const formData = await body.value.read({
+      maxFileSize: 10_000_000, // 10MB limit
+    });
 
-    const imageBase64 = await getImageBase64(
-      imageFile.filename,
-      imageFile.contentType
-    );
+    if (!formData.files || formData.files.length === 0) {
+      ctx.response.status = 400;
+      ctx.response.body = {
+        status: "error",
+        message: "No file uploaded",
+      };
+      return;
+    }
+
+    const file = formData.files[0];
+
+    if (!file) {
+      ctx.response.status = 400;
+      ctx.response.body = {
+        status: "error",
+        message: "No file uploaded",
+      };
+      return;
+    }
+
+    const imageBase64 = await getImageBase64(file.filename!, file.contentType);
 
     // Call Hugging Face API to predict plant disease using the model from the repo
     const predictions = await getPredictionFromHuggingFace(imageBase64);
@@ -49,7 +68,7 @@ export async function predictPlantDisease(ctx: Context) {
     };
 
     ctx.response.body = result;
-  } catch (error) {
+  } catch (error: any) {
     ctx.response.status = 500;
     ctx.response.body = { error: "Failed to process image: " + error.message };
   }
