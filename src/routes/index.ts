@@ -1,6 +1,6 @@
-import { Router } from "https://deno.land/x/oak@v12.6.1/mod.ts";
 import { healthRoutes } from "@/routes/health.routes.ts";
 import { predictionRoutes } from "@/routes/prediction.routes.ts";
+import { Router } from "../../deps.ts";
 
 const router = new Router();
 
@@ -19,7 +19,7 @@ router.get("/", (ctx) => {
         description: "Predict plant disease from image",
       },
     ],
-    repository: "https://github.com/luanvenancio/plant-disease-detection",
+    repository: "https://github.com/hari2309s/plant-doctor",
     usage: {
       predict: {
         method: "POST",

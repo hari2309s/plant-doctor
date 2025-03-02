@@ -1,4 +1,4 @@
-import { Router } from "https://deno.land/x/oak@v12.6.1/mod.ts";
+import { Router } from "../../deps.ts";
 import { predictPlantDisease } from "../controllers/prediction.controller.ts";
 
 const predictionRoutes = new Router();

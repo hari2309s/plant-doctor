@@ -1,9 +1,8 @@
-import { Context } from "https://deno.land/x/oak@v12.6.1/mod.ts";
-import { multiParser } from "https://deno.land/x/multiparser@v2.1.0/mod.ts";
 import { getImageBase64 } from "@/utils/image.utils.ts";
 import { getPredictionFromHuggingFace } from "@/services/huggingface.service.ts";
 import { getDiseaseTreatment } from "@/models/disease.model.ts";
 import { PredictionResult } from "@/models/prediction.model.ts";
+import { Context } from "../../deps.ts";
 
 export async function predictPlantDisease(ctx: Context) {
   try {

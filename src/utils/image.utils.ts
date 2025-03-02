@@ -1,3 +1,5 @@
+import { encode } from "../../deps.ts";
+
 /**
  * Convert an image file to base64 format
  * @param filePath Path to the image file
@@ -5,16 +7,18 @@
  * @returns Base64-encoded string with data URI prefix
  */
 export async function getImageBase64(
-  filePath: string,
+  filename: string,
   contentType: string
 ): Promise<string> {
   try {
-    const imageData = await Deno.readFile(filePath);
-    const base64Data = btoa(new TextDecoder().decode(imageData));
+    // Read file as binary data
+    const imageData = await Deno.readFile(filename);
+    const base64Data = encode(imageData);
+
     return `data:${contentType};base64,${base64Data}`;
-  } catch (error: any) {
-    console.error("Error reading image file:", error);
-    throw new Error("Failed to process image file: " + error.message);
+  } catch (error) {
+    console.error("Error converting image to base64:", error);
+    throw error;
   }
 }
 

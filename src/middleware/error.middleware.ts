@@ -1,8 +1,4 @@
-import {
-  Context,
-  Middleware,
-  isHttpError,
-} from "https://deno.land/x/oak@v12.6.1/mod.ts";
+import { isHttpError, Middleware } from "../../deps.ts";
 
 /**
  * Global error handling middleware

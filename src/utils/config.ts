@@ -1,4 +1,4 @@
-import { config as dotenvConfig } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
+import { dotenvConfig } from "../../deps.ts";
 
 // Load environment variables
 await dotenvConfig({ export: true });
@@ -10,8 +10,7 @@ export const config = {
   PORT: parseInt(Deno.env.get("PORT") || "8000"),
   HUGGING_FACE_API_KEY: Deno.env.get("HUGGING_FACE_API_KEY") || "",
   HUGGING_FACE_MODEL_ID:
-    Deno.env.get("HUGGING_FACE_MODEL_ID") ||
-    "luanvenancio/plant-disease-detection",
+    Deno.env.get("HUGGING_FACE_MODEL_ID") || "surgeonwz/plant-village",
   LOG_LEVEL: Deno.env.get("LOG_LEVEL") || "info",
 };
 
