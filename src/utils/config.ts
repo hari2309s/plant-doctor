@@ -10,7 +10,7 @@ export const config = {
   PORT: parseInt(Deno.env.get("PORT") || "8000"),
   HUGGING_FACE_API_KEY: Deno.env.get("HUGGING_FACE_API_KEY") || "",
   HUGGING_FACE_MODEL_ID:
-    Deno.env.get("HUGGING_FACE_MODEL_ID") || "surgeonwz/plant-village",
+    Deno.env.get("HUGGING_FACE_MODEL_ID") || "microsoft/resnet-50",
   LOG_LEVEL: Deno.env.get("LOG_LEVEL") || "info",
 };
 

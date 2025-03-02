@@ -3,6 +3,9 @@ import { getPredictionFromHuggingFace } from "@/services/huggingface.service.ts"
 import { getDiseaseTreatment } from "@/models/disease.model.ts";
 import { PredictionResult } from "@/models/prediction.model.ts";
 import { Context } from "../../deps.ts";
+import { config } from "@/utils/config.ts";
+
+const HF_MODEL_ID = config.HUGGING_FACE_MODEL_ID;
 
 export async function predictPlantDisease(ctx: Context) {
   try {
@@ -50,7 +53,7 @@ export async function predictPlantDisease(ctx: Context) {
     const predictions = await getPredictionFromHuggingFace(imageBase64);
 
     // Format and return the predictions
-    // Structure is based on the luanvenancio/plant-disease-detection model output
+    // Structure is based on the microsoft/resnet-50 model output
     const formattedPredictions = Array.isArray(predictions)
       ? predictions.map((prediction: { label: string; score: number }) => ({
           disease: prediction.label,
@@ -62,7 +65,7 @@ export async function predictPlantDisease(ctx: Context) {
     const result: PredictionResult = {
       success: true,
       timestamp: new Date().toISOString(),
-      model: "luanvenancio/plant-disease-detection",
+      model: HF_MODEL_ID,
       predictions: formattedPredictions,
     };
 

@@ -26,7 +26,7 @@ export async function getPredictionFromHuggingFace(imageBase64: string) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          inputs: imageBase64,
+          inputs: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
         }),
       }
     );
