@@ -2,8 +2,9 @@ import { getImageBase64 } from "@/utils/image.utils.ts";
 import { getPredictionFromHuggingFace } from "@/services/huggingface.service.ts";
 import { getDiseaseTreatment } from "@/models/disease.model.ts";
 import { PredictionResult } from "@/models/prediction.model.ts";
-import { Context } from "../../deps.ts";
+import { Context, decode, encode } from "../../deps.ts";
 import { config } from "@/utils/config.ts";
+import { saveDiagnosis } from "@/services/diagnosis.service.ts";
 
 const HF_MODEL_ID = config.HUGGING_FACE_MODEL_ID;
 
@@ -27,7 +28,11 @@ export async function predictPlantDisease(ctx: Context) {
       maxFileSize: 10_000_000, // 10MB limit
     });
 
-    if (!formData.files || formData.files.length === 0) {
+    if (
+      !formData.files ||
+      formData.files.length === 0 ||
+      !formData.fields.plant_name
+    ) {
       ctx.response.status = 400;
       ctx.response.body = {
         status: "error",
@@ -37,6 +42,7 @@ export async function predictPlantDisease(ctx: Context) {
     }
 
     const file = formData.files[0];
+    const plantName = formData.fields.plant_name;
 
     if (!file) {
       ctx.response.status = 400;
@@ -45,6 +51,20 @@ export async function predictPlantDisease(ctx: Context) {
         message: "No file uploaded",
       };
       return;
+    }
+
+    // Save the uploaded file
+    const fileExt = file.filename?.split(".").pop();
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
+    const filePath = `uploads/${fileName}`;
+
+    try {
+      const data = encode(file.content!);
+      const dataBuffer = new Uint8Array(decode(data).buffer);
+
+      await Deno.writeFile(filePath, dataBuffer, { create: true });
+    } catch (error) {
+      console.log("error ", error);
     }
 
     const imageBase64 = await getImageBase64(file.filename!, file.contentType);
@@ -62,11 +82,24 @@ export async function predictPlantDisease(ctx: Context) {
         }))
       : [];
 
+    const disease = [...predictions].sort(
+      (a, b) => parseFloat(b.confidence) - parseFloat(a.confidence)
+    )[0];
+
+    // Save diagnosis to database
+    const diagnosis = await saveDiagnosis({
+      plant_name: plantName,
+      predictions: formattedPredictions,
+      disease_name: disease.label,
+      treatment: disease.description,
+      image_path: filePath,
+    });
+
     const result: PredictionResult = {
       success: true,
       timestamp: new Date().toISOString(),
       model: HF_MODEL_ID,
-      predictions: formattedPredictions,
+      ...diagnosis,
     };
 
     ctx.response.body = result;

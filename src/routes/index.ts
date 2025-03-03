@@ -1,6 +1,7 @@
 import { healthRoutes } from "@/routes/health.routes.ts";
 import { predictionRoutes } from "@/routes/prediction.routes.ts";
 import { Router } from "../../deps.ts";
+import { historyRoutes } from "@/routes/history.routes.ts";
 
 const router = new Router();
 
@@ -43,5 +44,6 @@ router.use(
   predictionRoutes.routes(),
   predictionRoutes.allowedMethods()
 );
+router.use("/api/v1", historyRoutes.routes(), historyRoutes.allowedMethods());
 
 export { router };

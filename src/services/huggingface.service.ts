@@ -40,7 +40,7 @@ export async function getPredictionFromHuggingFace(imageBase64: string) {
     const result = await response.json();
 
     // Format the response based on the model's output structure
-    // The luanvenancio/plant-disease-detection model returns an array of predictions
+    // The microsoft/resnet-50 model returns an array of predictions
     return result;
   } catch (error) {
     console.error("Error predicting plant disease:", error);
