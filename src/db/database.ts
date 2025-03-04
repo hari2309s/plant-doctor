@@ -17,10 +17,10 @@ export async function initDB() {
     await client.connect();
     console.log("Database connection established");
 
-    // Create plant_diagnoses table if it doesn't exist
+    // Create plants_diagnoses table if it doesn't exist
     await client.queryObject(`
-      CREATE TABLE IF NOT EXISTS plant_diagnoses (
-        id SERIAL PRIMARY KEY,
+      CREATE TABLE IF NOT EXISTS plants_diagnoses (
+        id VARCHAR(255) PRIMARY KEY,
         plant_name VARCHAR(255) NOT NULL,
         predictions JSONB NOT NULL, -- Array of diagnosis objects,
         disease_name VARCHAR(255) NOT NULL,

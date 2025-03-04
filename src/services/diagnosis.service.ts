@@ -1,4 +1,5 @@
 import { getDB } from "@/db/database.ts";
+import { v4 } from "../../deps.ts";
 
 interface Prediction {
   confidence: string;
@@ -20,11 +21,14 @@ interface Diagnosis {
 export async function saveDiagnosis(diagnosis: Diagnosis): Promise<Diagnosis> {
   const client = getDB();
 
+  const uuid = crypto.randomUUID();
+
   const result = await client.queryObject<Diagnosis>(
-    `INSERT INTO plant_diagnoses (plant_name, predictions, disease_name, image_path, treatment, additional_info)
-    VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO plants_diagnoses (id, plant_name, predictions, disease_name, image_path, treatment, additional_info)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING *`,
     [
+      uuid,
       diagnosis.plant_name,
       diagnosis.predictions ? JSON.stringify(diagnosis.predictions) : "[]",
       diagnosis.disease_name,
@@ -42,7 +46,7 @@ export async function saveDiagnosis(diagnosis: Diagnosis): Promise<Diagnosis> {
 export async function getAllDiagnoses(): Promise<Diagnosis[]> {
   const client = getDB();
   const result = await client.queryObject<Diagnosis>(
-    `SELECT * FROM plant_diagnoses ORDER BY created_at DESC`
+    `SELECT * FROM plants_diagnoses ORDER BY created_at DESC`
   );
 
   return result.rows;
@@ -51,7 +55,7 @@ export async function getAllDiagnoses(): Promise<Diagnosis[]> {
 export async function getDiagnosisById(id: number): Promise<Diagnosis | null> {
   const client = getDB();
   const result = await client.queryObject<Diagnosis>(
-    `SELECT * FROM plant_diagnoses WHERE id = $1`,
+    `SELECT * FROM plants_diagnoses WHERE id = $1`,
     [id]
   );
 
