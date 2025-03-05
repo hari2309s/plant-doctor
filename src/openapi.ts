@@ -53,16 +53,16 @@ builder
                     type: "array",
                     items: {
                       type: "object",
-                    },
-                    properties: {
-                      disease: {
-                        type: "string",
-                      },
-                      confidence: {
-                        type: "string",
-                      },
-                      description: {
-                        type: "string",
+                      properties: {
+                        disease: {
+                          type: "string",
+                        },
+                        confidence: {
+                          type: "string",
+                        },
+                        description: {
+                          type: "string",
+                        },
                       },
                     },
                   },

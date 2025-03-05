@@ -49,26 +49,31 @@ try {
 
 // Swagger UI HTML template
 const swaggerHtml = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <title>Plant Doctor API Docs</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css" />
-</head>
-<body>
-  <div id="swagger-ui"></div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.min.js"></script>
-  <script>
-    window.onload = () => {
-      SwaggerUIBundle({
-        url: "/swagger.json", // Load OpenAPI Spec from swagger.ts
-        dom_id: "#swagger-ui"
-      });
-    };
-  </script>
-</body>
-</html>
-`;
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Swagger UI</title>
+        <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui.css">
+        <script src="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui-bundle.js"></script>
+      </head>
+      <body>
+        <div id="swagger-ui"></div>
+        <script>
+          window.onload = function() {
+            SwaggerUIBundle({
+              url: "/swagger.json",
+              dom_id: '#swagger-ui',
+              presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIBundle.SwaggerUIStandalonePreset
+              ],
+              layout: "BaseLayout"
+            });
+          }
+        </script>
+      </body>
+    </html>
+  `;
 
 // Serve Swagger UI on `/swagger.json`
 router.get("/swagger.json", (context) => {
@@ -94,4 +99,5 @@ app.use(router.allowedMethods());
 console.log(
   `🌱 Plant Disease Detection API running on http://localhost:${PORT}`
 );
+
 await app.listen({ port: PORT });
