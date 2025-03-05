@@ -13,3 +13,4 @@ export {
   decode,
 } from "https://deno.land/std@0.200.0/encoding/base64.ts";
 export { Client } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
+export { OpenApiBuilder } from "npm:openapi3-ts/oas31";

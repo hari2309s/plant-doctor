@@ -19,7 +19,7 @@ export async function getHistory(ctx: Context) {
       created_at: diagnosis.created_at,
     }));
 
-    ctx.response.body = results;
+    ctx.response.body = { history: results };
   } catch (error) {
     console.error("Error fetching history:", error);
     ctx.response.status = 500;

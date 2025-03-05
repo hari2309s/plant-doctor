@@ -4,6 +4,7 @@ import { loggerMiddleware } from "@/middleware/logger.middleware.ts";
 import { router } from "./routes/index.ts";
 import { Application, oakCors } from "../deps.ts";
 import { initDB } from "@/db/database.ts";
+import { openApiSpec } from "@/openapi.ts";
 
 // Initialize DB connection
 await initDB();
@@ -45,6 +46,41 @@ try {
     console.error("Failed to create uploads directory:", error);
   }
 }
+
+// Swagger UI HTML template
+const swaggerHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Plant Doctor API Docs</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css" />
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.min.js"></script>
+  <script>
+    window.onload = () => {
+      SwaggerUIBundle({
+        url: "/swagger.json", // Load OpenAPI Spec from swagger.ts
+        dom_id: "#swagger-ui"
+      });
+    };
+  </script>
+</body>
+</html>
+`;
+
+// Serve Swagger UI on `/swagger.json`
+router.get("/swagger.json", (context) => {
+  context.response.body = openApiSpec;
+  context.response.headers.set("Content-Type", "application/json");
+});
+
+// Serve OpenAPI spec on `/docs`
+router.get("/docs", (context) => {
+  context.response.body = swaggerHtml;
+  context.response.headers.set("Content-Type", "text/html");
+});
 
 // Apply middlewares
 app.use(loggerMiddleware);

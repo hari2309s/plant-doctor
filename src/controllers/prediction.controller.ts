@@ -59,10 +59,7 @@ export async function predictPlantDisease(ctx: Context) {
     const filePath = `uploads/${fileName}`;
 
     try {
-      const data = encode(file.content!);
-      const dataBuffer = new Uint8Array(decode(data).buffer);
-
-      await Deno.writeFile(filePath, dataBuffer, { create: true });
+      await Deno.writeFile(filePath, file.content!, { create: true });
     } catch (error) {
       console.log("error ", error);
     }

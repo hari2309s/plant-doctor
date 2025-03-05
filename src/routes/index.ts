@@ -27,7 +27,8 @@ router.get("/", (ctx) => {
         path: "/api/v1/predict",
         contentType: "multipart/form-data",
         parameters: {
-          image: "Plant leaf image file",
+          file: "Plant leaf image file",
+          plant_name: "Name of the plant",
         },
         response: {
           predictions: "Array of predictions with label and confidence score",
