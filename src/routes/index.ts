@@ -31,6 +31,9 @@ router.get("/", (ctx) => {
           plant_name: "Name of the plant",
         },
         response: {
+          success: true,
+          timestamp: "2025-03-06T04:59:35.251Z",
+          model: "microsoft/res-net-50",
           predictions: "Array of predictions with label and confidence score",
         },
       },

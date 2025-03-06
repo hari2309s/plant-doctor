@@ -77,7 +77,7 @@ const swaggerHtml = `
         </script>
       </body>
     </html>
-  `;
+`;
 
 // Serve Swagger UI on `/swagger.json`
 router.get("/swagger.json", (context) => {
