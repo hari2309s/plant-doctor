@@ -1,11 +1,8 @@
-import { Client, dotenvConfig } from "../../deps.ts";
-
-// Load environment variables
-const env = dotenvConfig();
+import { Client } from "../../deps.ts";
 
 // Configure DB connection
 const POSTGRES_URL =
-  env.DATABASE_URL ||
+  Deno.env.get("DATABASE_URL") ||
   "postgres://postgres:postgres@localhost:5432/plant_doctor";
 
 // Create a client pool
