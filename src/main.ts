@@ -6,17 +6,6 @@ import { Application, oakCors } from "../deps.ts";
 import { initDB } from "@/db/database.ts";
 import { openApiSpec } from "@/openapi.ts";
 
-// Set custom temp directory
-Deno.env.set("TMPDIR", "./temp");
-// Create the directory if it doesn't exist
-try {
-  await Deno.mkdir("./temp", { recursive: true });
-} catch (e) {
-  if (!(e instanceof Deno.errors.AlreadyExists)) {
-    throw e;
-  }
-}
-
 // Initialize DB connection
 await initDB();
 

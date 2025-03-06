@@ -32,11 +32,17 @@ export function getImageBase64(
   return `data:${contentType};base64,${base64}`;
 }
 
-export async function encodeBase64FromBuffer(
-  buffer: Uint8Array
-): Promise<string> {
-  // Convert Uint8Array to base64
-  return await btoa(String.fromCharCode(...new Uint8Array(buffer)));
+export function encodeBase64FromBuffer(buffer: Uint8Array): string {
+  // A more robust way to convert Uint8Array to base64
+  const chunks: string[] = [];
+  const chunkSize = 8192; // Process in smaller chunks to avoid memory issues
+
+  for (let i = 0; i < buffer.length; i += chunkSize) {
+    const chunk = buffer.subarray(i, i + chunkSize);
+    chunks.push(String.fromCharCode(...chunk));
+  }
+
+  return btoa(chunks.join(""));
 }
 
 /**
