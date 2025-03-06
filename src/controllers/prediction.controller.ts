@@ -54,7 +54,7 @@ export async function predictPlantDisease(ctx: Context) {
     }
 
     // Save the uploaded file
-    const fileExt = file.filename?.split(".").pop();
+    /* const fileExt = file.filename?.split(".").pop();
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
     const filePath = `uploads/${fileName}`;
 
@@ -90,7 +90,7 @@ export async function predictPlantDisease(ctx: Context) {
       predictions: formattedPredictions,
       disease_name: disease.label,
       treatment: disease.description,
-      image_path: filePath,
+      image_path: "",
     });
 
     const result: PredictionResult = {
