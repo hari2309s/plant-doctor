@@ -6,7 +6,7 @@ import { encode } from "../../deps.ts";
  * @param contentType The MIME type of the image
  * @returns Base64-encoded string with data URI prefix
  */
-/*export async function getImageBase64(
+export async function getImageBase64(
   filename: string,
   contentType: string
 ): Promise<string> {
@@ -20,29 +20,6 @@ import { encode } from "../../deps.ts";
     console.error("Error converting image to base64:", error);
     throw error;
   }
-}*/
-
-// Replace the existing getImageBase64 function with this one
-export function getImageBase64(
-  filename: string,
-  contentType: string,
-  fileContent: Uint8Array
-): string {
-  const base64 = btoa(String.fromCharCode(...new Uint8Array(fileContent)));
-  return `data:${contentType};base64,${base64}`;
-}
-
-export function encodeBase64FromBuffer(buffer: Uint8Array): string {
-  // A more robust way to convert Uint8Array to base64
-  const chunks: string[] = [];
-  const chunkSize = 8192; // Process in smaller chunks to avoid memory issues
-
-  for (let i = 0; i < buffer.length; i += chunkSize) {
-    const chunk = buffer.subarray(i, i + chunkSize);
-    chunks.push(String.fromCharCode(...chunk));
-  }
-
-  return btoa(chunks.join(""));
 }
 
 /**
@@ -52,4 +29,22 @@ export function encodeBase64FromBuffer(buffer: Uint8Array): string {
  */
 export function isImageFile(contentType: string): boolean {
   return contentType.startsWith("image/");
+}
+
+/**
+ * Encodes a Uint8Array buffer to a base64 string
+ * @param buffer The binary data as Uint8Array
+ * @returns A Promise that resolves to the base64-encoded string
+ */
+export function encodeBase64FromBuffer(buffer: Uint8Array): string {
+  // Convert Uint8Array to base64 string
+  // In Deno, we can use the built-in btoa function with TextDecoder
+  const uint8Array = new Uint8Array(buffer);
+  const binary = Array.from(uint8Array)
+    .map((byte) => String.fromCharCode(byte))
+    .join("");
+
+  const base64 = btoa(binary);
+
+  return base64;
 }
