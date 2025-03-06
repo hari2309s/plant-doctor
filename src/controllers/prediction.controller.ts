@@ -56,34 +56,20 @@ export async function predictPlantDisease(ctx: Context) {
     // Generate file name and path
     const fileExt = file.filename?.split(".").pop() || "jpg";
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
-    const uploadDir = "uploads";
-    const filePath = `${uploadDir}/${fileName}`;
+    const filePath = `uploads/${fileName}`;
 
-    // Ensure the uploads directory exists
+    // Process the image directly from memory
+    let imageBase64;
     try {
-      await Deno.stat(uploadDir);
-    } catch (error) {
-      if (error instanceof Deno.errors.NotFound) {
-        await Deno.mkdir(uploadDir, { recursive: true });
-      } else {
-        throw error;
-      }
-    }
-
-    // Save the uploaded file
-    try {
-      await Deno.writeFile(filePath, file.content!, { create: true });
-    } catch (error: any) {
-      console.error("Error saving file:", error);
+      imageBase64 = await encodeBase64FromBuffer(file.content!);
+    } catch (encodeError: any) {
+      console.error("Base64 encoding error:", encodeError);
       ctx.response.status = 500;
       ctx.response.body = {
-        error: "Failed to save uploaded file: " + error.message,
+        error: "Failed to encode image: " + encodeError.message,
       };
       return;
     }
-
-    // Convert the file directly to base64 from the in-memory content
-    const imageBase64 = await encodeBase64FromBuffer(file.content!);
 
     // Call Hugging Face API to predict plant disease using the model from the repo
     const predictions = await getPredictionFromHuggingFace(imageBase64);
