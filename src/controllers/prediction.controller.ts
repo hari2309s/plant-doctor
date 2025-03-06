@@ -8,6 +8,10 @@ import { saveDiagnosis } from "@/services/diagnosis.service.ts";
 
 const HF_MODEL_ID = config.HUGGING_FACE_MODEL_ID;
 
+// Configure the temporary directory - this is likely the root of the issue
+const TEMP_DIR = "./tmp";
+ensureDirSync(TEMP_DIR);
+
 export async function predictPlantDisease(ctx: Context) {
   try {
     // Parse multipart form data to get the uploaded image
@@ -26,6 +30,7 @@ export async function predictPlantDisease(ctx: Context) {
     // Get the form data value
     const formData = await body.value.read({
       maxFileSize: 10_000_000, // 10MB limit
+      outPath: TEMP_DIR, // Use our custom temp directory
     });
 
     if (
@@ -58,7 +63,7 @@ export async function predictPlantDisease(ctx: Context) {
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
 
     // Ensure uploads directory exists
-    const uploadDir = "uploads";
+    const uploadDir = ",/uploads";
     ensureDirSync(uploadDir);
 
     const filePath = `${uploadDir}/${fileName}`;
