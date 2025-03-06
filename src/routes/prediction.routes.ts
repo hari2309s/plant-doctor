@@ -1,5 +1,5 @@
 import { Router } from "../../deps.ts";
-import { predictPlantDisease } from "../controllers/prediction.controller.ts";
+import { predictPlantDisease } from "@/controllers/prediction.controller.ts";
 
 const predictionRoutes = new Router();
 

@@ -2,7 +2,7 @@ import { getImageBase64 } from "@/utils/image.utils.ts";
 import { getPredictionFromHuggingFace } from "@/services/huggingface.service.ts";
 import { getDiseaseTreatment } from "@/models/disease.model.ts";
 import { PredictionResult } from "@/models/prediction.model.ts";
-import { Context, decode, encode } from "../../deps.ts";
+import { Context } from "../../deps.ts";
 import { config } from "@/utils/config.ts";
 import { saveDiagnosis } from "@/services/diagnosis.service.ts";
 

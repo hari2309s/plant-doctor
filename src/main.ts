@@ -1,7 +1,7 @@
 import { config } from "@/utils/config.ts";
 import { errorMiddleware } from "@/middleware/error.middleware.ts";
 import { loggerMiddleware } from "@/middleware/logger.middleware.ts";
-import { router } from "./routes/index.ts";
+import { router } from "@/routes/index.ts";
 import { Application, oakCors } from "../deps.ts";
 import { initDB } from "@/db/database.ts";
 import { openApiSpec } from "@/openapi.ts";
@@ -15,11 +15,7 @@ const PORT = config.PORT;
 // Configure CORS
 app.use(
   oakCors({
-    origin: [
-      "http://localhost:3000",
-      "https://hari2309s.github.io/plant-doctor-frontend",
-      "http://localhost:8000",
-    ],
+    origin: ["http://localhost:3000", "http://localhost:8000"],
     optionsSuccessStatus: 200,
   })
 );

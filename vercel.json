@@ -3,5 +3,15 @@
     "api/*.ts": {
       "runtime": "vercel-deno@2.0.0"
     }
+  },
+  "routes": [
+    { "src": "/api/health", "dest": "/api/health.routes.ts" },
+    { "src": "/api/history", "dest": "/api/history.routes.ts" },
+    { "src": "/api/prediction", "dest": "/api/prediction.routes.ts" },
+    { "src": "/api/diagnosis", "dest": "/api/diagnosis.service.ts" },
+    { "src": "/(.*)", "dest": "/api/index.ts" }
+  ],
+  "env": {
+    "DENO_ENV": "production"
   }
 }
