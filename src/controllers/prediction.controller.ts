@@ -1,4 +1,4 @@
-import { getImageBase64 } from "@/utils/image.utils.ts";
+import { encodeBase64FromBuffer } from "@/utils/image.utils.ts";
 import { getPredictionFromHuggingFace } from "@/services/huggingface.service.ts";
 import { getDiseaseTreatment } from "@/models/disease.model.ts";
 import { PredictionResult } from "@/models/prediction.model.ts";
@@ -64,7 +64,8 @@ export async function predictPlantDisease(ctx: Context) {
       console.log("error ", error);
     }
 
-    const imageBase64 = await getImageBase64(file.filename!, file.contentType);
+    // Convert the file directly to base64 from the in-memory content
+    const imageBase64 = await encodeBase64FromBuffer(file.content!);
 
     // Call Hugging Face API to predict plant disease using the model from the repo
     const predictions = await getPredictionFromHuggingFace(imageBase64);

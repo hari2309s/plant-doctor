@@ -6,7 +6,7 @@ import { encode } from "../../deps.ts";
  * @param contentType The MIME type of the image
  * @returns Base64-encoded string with data URI prefix
  */
-export async function getImageBase64(
+/*export async function getImageBase64(
   filename: string,
   contentType: string
 ): Promise<string> {
@@ -20,6 +20,23 @@ export async function getImageBase64(
     console.error("Error converting image to base64:", error);
     throw error;
   }
+}*/
+
+// Replace the existing getImageBase64 function with this one
+export function getImageBase64(
+  filename: string,
+  contentType: string,
+  fileContent: Uint8Array
+): string {
+  const base64 = btoa(String.fromCharCode(...new Uint8Array(fileContent)));
+  return `data:${contentType};base64,${base64}`;
+}
+
+export async function encodeBase64FromBuffer(
+  buffer: Uint8Array
+): Promise<string> {
+  // Convert Uint8Array to base64
+  return await btoa(String.fromCharCode(...new Uint8Array(buffer)));
 }
 
 /**
