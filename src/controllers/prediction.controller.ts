@@ -26,7 +26,6 @@ export async function predictPlantDisease(ctx: Context) {
     // Get the form data value
     const formData = await body.value.read({
       maxFileSize: 10_000_000, // 10MB limit
-      outPath: TEMP_DIR, // Use our custom temp directory
     });
 
     if (
