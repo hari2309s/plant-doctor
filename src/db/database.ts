@@ -5,6 +5,7 @@ const POSTGRES_URL =
   Deno.env.get("DATABASE_URL") ||
   "postgres://postgres:postgres@localhost:5432/plant_doctor";
 
+console.log("hahah ", POSTGRES_URL);
 // Create a pool
 let pool: Pool;
 
