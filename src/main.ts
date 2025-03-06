@@ -20,33 +20,6 @@ app.use(
   })
 );
 
-// Serve static files from the uploads directory
-/*app.use(async (ctx, next) => {
-  const path = ctx.request.url.pathname;
-  if (path.startsWith("/uploads/")) {
-    const filePath = path.replace("/uploads/", "uploads/");
-    try {
-      await ctx.send({
-        root: Deno.cwd(),
-        path: filePath,
-      });
-    } catch {
-      await next();
-    }
-  } else {
-    await next();
-  }
-});*/
-
-// Create uploads directory if it doesn't exist
-/*try {
-  await Deno.mkdir("uploads", { recursive: true });
-} catch (error) {
-  if (!(error instanceof Deno.errors.AlreadyExists)) {
-    console.error("Failed to create uploads directory:", error);
-  }
-}*/
-
 // Swagger UI HTML template
 const swaggerHtml = `
     <!DOCTYPE html>

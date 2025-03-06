@@ -6,7 +6,7 @@ import { encode } from "../../deps.ts";
  * @param contentType The MIME type of the image
  * @returns Base64-encoded string with data URI prefix
  */
-export async function getImageBase64(
+/*export async function getImageBase64(
   filename: string,
   contentType: string
 ): Promise<string> {
@@ -20,7 +20,7 @@ export async function getImageBase64(
     console.error("Error converting image to base64:", error);
     throw error;
   }
-}
+}*/
 
 /**
  * Validate if a file is an image based on its MIME type
