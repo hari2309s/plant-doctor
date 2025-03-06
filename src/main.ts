@@ -15,7 +15,11 @@ const PORT = config.PORT;
 // Configure CORS
 app.use(
   oakCors({
-    origin: ["http://localhost:3000", "http://localhost:8000"],
+    origin: [
+      "http://localhost:3000",
+      "https://hari2309s.github.io/plant-doctor-frontend",
+      "http://localhost:8000",
+    ],
     optionsSuccessStatus: 200,
   })
 );
