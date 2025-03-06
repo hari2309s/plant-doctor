@@ -14,3 +14,4 @@ export {
 } from "https://deno.land/std@0.200.0/encoding/base64.ts";
 export { Pool, Client } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 export { OpenApiBuilder } from "npm:openapi3-ts/oas31";
+export { ensureDirSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
