@@ -53,16 +53,34 @@ export async function predictPlantDisease(ctx: Context) {
       return;
     }
 
-    // Save the uploaded file
-    /* const fileExt = file.filename?.split(".").pop();
+    // Generate file name and path
+    const fileExt = file.filename?.split(".").pop() || "jpg";
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
-    const filePath = `uploads/${fileName}`;
+    const uploadDir = "uploads";
+    const filePath = `${uploadDir}/${fileName}`;
 
-    /*try {
-      await Deno.writeFile(filePath, file.content!, { create: true });
+    // Ensure the uploads directory exists
+    try {
+      await Deno.stat(uploadDir);
     } catch (error) {
-      console.log("error ", error);
-    }*/
+      if (error instanceof Deno.errors.NotFound) {
+        await Deno.mkdir(uploadDir, { recursive: true });
+      } else {
+        throw error;
+      }
+    }
+
+    // Save the uploaded file
+    try {
+      await Deno.writeFile(filePath, file.content!, { create: true });
+    } catch (error: any) {
+      console.error("Error saving file:", error);
+      ctx.response.status = 500;
+      ctx.response.body = {
+        error: "Failed to save uploaded file: " + error.message,
+      };
+      return;
+    }
 
     // Convert the file directly to base64 from the in-memory content
     const imageBase64 = await encodeBase64FromBuffer(file.content!);
@@ -90,7 +108,7 @@ export async function predictPlantDisease(ctx: Context) {
       predictions: formattedPredictions,
       disease_name: disease.label,
       treatment: disease.description,
-      image_path: "",
+      image_path: filePath,
     });
 
     const result: PredictionResult = {
