@@ -1,6 +1,6 @@
 {
   "functions": {
-    "src/routes/*.ts": {
+    "src/*.ts": {
       "runtime": "vercel-deno@2.0.0"
     }
   },
