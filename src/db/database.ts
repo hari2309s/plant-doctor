@@ -1,4 +1,4 @@
-import { Pool } from "../../deps.ts";
+import { Pool, Client } from "../../deps.ts";
 
 // Configure DB connection
 const POSTGRES_URL =
@@ -6,12 +6,82 @@ const POSTGRES_URL =
   "postgres://postgres:postgres@localhost:5432/plant_doctor";
 
 console.log("hahah ", POSTGRES_URL);
-// Create a pool
-let pool: Pool;
+
+let pool: Pool | null = null;
+let isConnecting = false;
+let connectionAttempts = 0;
+const MAX_ATTEMPTS = 3;
 
 // Initialize database connection
 export async function initDB() {
+  if (isConnecting) {
+    console.log("Database connection already in progress");
+    return null;
+  }
+
+  if (connectionAttempts >= MAX_ATTEMPTS) {
+    console.log(
+      "Maximum connection attempts reached, skipping database initialization"
+    );
+    return null;
+  }
+
+  isConnecting = true;
+  connectionAttempts++;
   try {
+    console.log(
+      `Database connection attempt ${connectionAttempts}/${MAX_ATTEMPTS}`
+    );
+
+    // Try a simple client connection first
+    const dbUrl = new URL(POSTGRES_URL);
+    const client = new Client({
+      user: dbUrl.username,
+      password: dbUrl.password,
+      hostname: dbUrl.hostname,
+      port: Number(dbUrl.port) || 5432,
+      database: dbUrl.pathname.substring(1),
+      tls: {
+        enabled: true,
+      },
+    });
+
+    console.log(
+      `Attempting to connect to ${dbUrl.hostname}:${dbUrl.port || 5432}`
+    );
+    await client.connect();
+    console.log("Single client connection successful!");
+    await client.end();
+
+    // Now try a pool
+    pool = new Pool(
+      {
+        user: dbUrl.username,
+        password: dbUrl.password,
+        hostname: dbUrl.hostname,
+        port: Number(dbUrl.port) || 5432,
+        database: dbUrl.pathname.substring(1),
+        tls: {
+          enabled: true,
+        },
+      },
+      2
+    ); // Reduce max connections to 2
+
+    const poolClient = await pool.connect();
+    poolClient.release();
+
+    console.log("Database pool successfully initialized");
+    isConnecting = false;
+    return pool;
+  } catch (error) {
+    console.error("Database connection error:", error);
+    isConnecting = false;
+    pool = null;
+
+    return null;
+  }
+  /*try {
     // Parse the connection string into separate components
     const dbUrl = new URL(POSTGRES_URL);
     const username = dbUrl.username;
@@ -61,13 +131,16 @@ export async function initDB() {
   } catch (error) {
     console.error("Database connection error:", error);
     throw error;
-  }
+  }*/
 }
 
 // Get DB client
 export async function getDB() {
   if (!pool) {
     await initDB();
+    if (!pool) {
+      throw new Error("Database connection unavailable");
+    }
   }
   return await pool.connect();
 }
