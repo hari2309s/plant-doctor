@@ -2,15 +2,11 @@ import { encodeBase64FromBuffer } from "@/utils/image.utils.ts";
 import { getPredictionFromHuggingFace } from "@/services/huggingface.service.ts";
 import { getDiseaseTreatment } from "@/models/disease.model.ts";
 import { PredictionResult } from "@/models/prediction.model.ts";
-import { Context, ensureDirSync } from "../../deps.ts";
+import { Context } from "../../deps.ts";
 import { config } from "@/utils/config.ts";
 import { saveDiagnosis } from "@/services/diagnosis.service.ts";
 
 const HF_MODEL_ID = config.HUGGING_FACE_MODEL_ID;
-
-// Configure the temporary directory - this is likely the root of the issue
-const TEMP_DIR = "./tmp";
-ensureDirSync(TEMP_DIR);
 
 export async function predictPlantDisease(ctx: Context) {
   try {
@@ -63,8 +59,8 @@ export async function predictPlantDisease(ctx: Context) {
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
 
     // Ensure uploads directory exists
-    const uploadDir = ",/uploads";
-    ensureDirSync(uploadDir);
+    const uploadDir = "./uploads";
+    // ensureDirSync(uploadDir);
 
     const filePath = `${uploadDir}/${fileName}`;
 
@@ -73,7 +69,7 @@ export async function predictPlantDisease(ctx: Context) {
     try {
       imageBase64 = await encodeBase64FromBuffer(file.content!);
       // Save the file to disk
-      await Deno.writeFile(filePath, file.content!);
+      // await Deno.writeFile(filePath, file.content!);
     } catch (encodeError: any) {
       console.error("Base64 encoding error:", encodeError);
       ctx.response.status = 500;
