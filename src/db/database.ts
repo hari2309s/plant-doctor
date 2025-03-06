@@ -26,6 +26,7 @@ export async function initDB() {
 
   isConnecting = true;
   connectionAttempts++;
+
   try {
     console.log(
       `Database connection attempt ${connectionAttempts}/${MAX_ATTEMPTS}`
