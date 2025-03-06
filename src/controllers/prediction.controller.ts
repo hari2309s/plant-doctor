@@ -58,11 +58,11 @@ export async function predictPlantDisease(ctx: Context) {
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
     const filePath = `uploads/${fileName}`;
 
-    try {
+    /*try {
       await Deno.writeFile(filePath, file.content!, { create: true });
     } catch (error) {
       console.log("error ", error);
-    }
+    }*/
 
     // Convert the file directly to base64 from the in-memory content
     const imageBase64 = await encodeBase64FromBuffer(file.content!);
