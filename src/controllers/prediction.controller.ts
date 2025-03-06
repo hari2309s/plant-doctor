@@ -64,8 +64,6 @@ export async function predictPlantDisease(ctx: Context) {
     const filePath = `${uploadDir}/${fileName}`;
 
     // Process the image directly from memory
-
-    // Process the image directly from memory
     let imageBase64;
     try {
       imageBase64 = await encodeBase64FromBuffer(file.content!);
