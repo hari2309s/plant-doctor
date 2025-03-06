@@ -3,9 +3,7 @@ import { Pool, Client } from "../../deps.ts";
 // Configure DB connection
 const POSTGRES_URL =
   Deno.env.get("DATABASE_URL") ||
-  "postgres://postgres:postgres@localhost:5432/plant_doctor";
-
-console.log("hahah ", POSTGRES_URL);
+  "postgresql://postgres:vaqzap-hajru0-peCdom@db.tztqrwfrxgdnghfvdluj.supabase.co:5432/postgres";
 
 let pool: Pool | null = null;
 let isConnecting = false;
