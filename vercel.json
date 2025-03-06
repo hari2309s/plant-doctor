@@ -13,5 +13,6 @@
   ],
   "env": {
     "DENO_ENV": "production"
-  }
+  },
+  "buildCommand": "deno cache src/main.ts"
 }
