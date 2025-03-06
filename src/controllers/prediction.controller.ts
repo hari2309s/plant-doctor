@@ -2,7 +2,7 @@ import { encodeBase64FromBuffer } from "@/utils/image.utils.ts";
 import { getPredictionFromHuggingFace } from "@/services/huggingface.service.ts";
 import { getDiseaseTreatment } from "@/models/disease.model.ts";
 import { PredictionResult } from "@/models/prediction.model.ts";
-import { Context } from "../../deps.ts";
+import { Context, encode } from "../../deps.ts";
 import { config } from "@/utils/config.ts";
 import { saveDiagnosis } from "@/services/diagnosis.service.ts";
 
@@ -53,22 +53,11 @@ export async function predictPlantDisease(ctx: Context) {
       return;
     }
 
-    // Generate file name and path
-    const fileExt = file.filename?.split(".").pop() || "jpg";
-    const fileName = `${crypto.randomUUID()}.${fileExt}`;
-
-    // Ensure uploads directory exists
-    const uploadDir = "./uploads";
-    // ensureDirSync(uploadDir);
-
-    const filePath = `${uploadDir}/${fileName}`;
-
     // Process the image directly from memory
     let imageBase64;
     try {
-      imageBase64 = await encodeBase64FromBuffer(file.content!);
-      // Save the file to disk
-      // await Deno.writeFile(filePath, file.content!);
+      //imageBase64 = await encodeBase64FromBuffer(file.content!);
+      imageBase64 = await encode(file.content!);
     } catch (encodeError: any) {
       console.error("Base64 encoding error:", encodeError);
       ctx.response.status = 500;
@@ -101,7 +90,7 @@ export async function predictPlantDisease(ctx: Context) {
       predictions: formattedPredictions,
       disease_name: disease.label,
       treatment: disease.description,
-      image_path: filePath,
+      image_path: "/uploads",
     });
 
     const result: PredictionResult = {
