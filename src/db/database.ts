@@ -1,18 +1,43 @@
-import { Client } from "../../deps.ts";
+import { Pool } from "../../deps.ts";
 
 // Configure DB connection
 const POSTGRES_URL =
   Deno.env.get("DATABASE_URL") ||
   "postgres://postgres:postgres@localhost:5432/plant_doctor";
 
-// Create a client pool
-const client = new Client(POSTGRES_URL);
+// Create a pool
+let pool: Pool;
 
 // Initialize database connection
 export async function initDB() {
   try {
-    await client.connect();
-    console.log("Database connection established");
+    // Parse the connection string into separate components
+    const dbUrl = new URL(POSTGRES_URL);
+    const username = dbUrl.username;
+    const password = dbUrl.password;
+    const hostname = dbUrl.hostname;
+    const port = Number(dbUrl.port) || 5432;
+    const database = dbUrl.pathname.substring(1); // Remove the leading '/'
+
+    // Use a connection pool instead of a single client
+    pool = new Pool(
+      {
+        user: username,
+        password: password,
+        hostname: hostname,
+        port: port,
+        database: database,
+        tls: {
+          enabled: true,
+          enforce: false,
+        },
+      },
+      3, // Maximum connections in the pool
+      true
+    ); // Connect immediately to verify
+
+    // Connect to the pool and get a client
+    const client = await pool.connect();
 
     // Create plants_diagnoses table if it doesn't exist
     await client.queryObject(`
@@ -27,7 +52,11 @@ export async function initDB() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
     console.log("Diagnosis table created or already exists");
+
+    client.release();
+    return pool;
   } catch (error) {
     console.error("Database connection error:", error);
     throw error;
@@ -35,6 +64,9 @@ export async function initDB() {
 }
 
 // Get DB client
-export function getDB() {
-  return client;
+export async function getDB() {
+  if (!pool) {
+    await initDB();
+  }
+  return await pool.connect();
 }

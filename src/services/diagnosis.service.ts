@@ -18,7 +18,7 @@ interface Diagnosis {
 }
 
 export async function saveDiagnosis(diagnosis: Diagnosis): Promise<Diagnosis> {
-  const client = getDB();
+  const client = await getDB();
 
   const uuid = crypto.randomUUID();
 
@@ -43,7 +43,7 @@ export async function saveDiagnosis(diagnosis: Diagnosis): Promise<Diagnosis> {
 }
 
 export async function getAllDiagnoses(): Promise<Diagnosis[]> {
-  const client = getDB();
+  const client = await getDB();
   const result = await client.queryObject<Diagnosis>(
     `SELECT * FROM plants_diagnoses ORDER BY created_at DESC`
   );
@@ -52,7 +52,7 @@ export async function getAllDiagnoses(): Promise<Diagnosis[]> {
 }
 
 export async function getDiagnosisById(id: number): Promise<Diagnosis | null> {
-  const client = getDB();
+  const client = await getDB();
   const result = await client.queryObject<Diagnosis>(
     `SELECT * FROM plants_diagnoses WHERE id = $1`,
     [id]
