@@ -25,6 +25,9 @@ function getConnectionConfig(url: string) {
       enabled: true, // Always use TLS with Supabase
       enforce: true, // Enforce TLS for Supabase
     },
+    max: 20, // Set maximum number of clients
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
     application_name: "plant-doctor-app", // Help identify your connection in Supabase logs
     connection_timeout: 30, // 30 seconds timeout for Supabase
     idle_timeout: 60, // 60 seconds idle timeout
