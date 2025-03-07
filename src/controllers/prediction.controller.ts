@@ -54,7 +54,27 @@ export async function predictPlantDisease(ctx: Context) {
       return;
     }
 
-    try {
+    let fileContent: Uint8Array;
+
+    if (file.content) {
+      fileContent = file.content; // Use content if available
+    } else if (file.filename) {
+      try {
+        console.log("reading using Deno with file name ", file.filename);
+        fileContent = await Deno.readFile(file.filename); // Fallback if content is missing
+      } catch (error) {
+        console.error("Error reading file from path:", error);
+        ctx.response.status = 500;
+        ctx.response.body = { error: "Failed to read uploaded file" };
+        return;
+      }
+    } else {
+      ctx.response.status = 400;
+      ctx.response.body = { error: "Invalid file upload" };
+      return;
+    }
+
+    /*try {
       // Read the file content from the temporary file path
       const fileContent = await Deno.readFile(file?.filename!);
 
@@ -68,7 +88,7 @@ export async function predictPlantDisease(ctx: Context) {
       console.error("Error reading file:", error);
       ctx.response.status = 500;
       ctx.response.body = { error: "Failed to read uploaded file" };
-    }
+    }*/
 
     // Generate a unique filename for the image
     const timestamp = new Date().getTime();
@@ -79,7 +99,7 @@ export async function predictPlantDisease(ctx: Context) {
     )}_${timestamp}.${fileExtension}`;
 
     // Ensure file.content is defined
-    if (!file.content) {
+    if (!fileContent) {
       ctx.response.status = 400;
       ctx.response.body = {
         error: "File content is missing",
@@ -88,17 +108,17 @@ export async function predictPlantDisease(ctx: Context) {
     }
 
     // Check if file.content is actually a Uint8Array
-    if (!(file.content instanceof Uint8Array)) {
+    if (!(fileContent instanceof Uint8Array)) {
       console.error("File content is not a Uint8Array:", typeof file.content);
 
       // Try to convert to Uint8Array if possible
       let contentBuffer: Uint8Array;
-      if (typeof file.content === "string") {
+      if (typeof fileContent === "string") {
         // Convert string to Uint8Array using TextEncoder
-        contentBuffer = new TextEncoder().encode(file.content);
-      } else if (file.content && file.content instanceof ArrayBuffer) {
+        contentBuffer = new TextEncoder().encode(fileContent);
+      } else if (fileContent && fileContent instanceof ArrayBuffer) {
         // Convert ArrayBuffer to Uint8Array
-        contentBuffer = new Uint8Array(file.content);
+        contentBuffer = new Uint8Array(fileContent);
       } else {
         ctx.response.status = 500;
         ctx.response.body = {
