@@ -1,142 +1,46 @@
-import { encodeBase64FromBuffer } from "@/utils/image.utils.ts";
+import {
+  encodeBase64FromBuffer,
+  extractImageIdentifier,
+} from "@/utils/image.utils.ts";
 import { getPredictionFromHuggingFace } from "@/services/huggingface.service.ts";
 import { getDiseaseTreatment } from "@/models/disease.model.ts";
 import { PredictionResult } from "@/models/prediction.model.ts";
 import { Context } from "../../deps.ts";
 import { config } from "@/utils/config.ts";
 import { saveDiagnosis } from "@/services/diagnosis.service.ts";
-import { uploadImageToSupabase } from "@/services/storage.service.ts";
 
 const HF_MODEL_ID = config.HUGGING_FACE_MODEL_ID;
 
 export async function predictPlantDisease(ctx: Context) {
   try {
-    // Parse multipart form data to get the uploaded image
-    const body = ctx.request.body();
+    const body = await ctx.request.body().value;
+    const { plant_name, image_url } = body;
 
-    // Check if the request has the form data type
-    if (body.type !== "form-data") {
+    if (!plant_name || !image_url) {
       ctx.response.status = 400;
       ctx.response.body = {
         status: "error",
-        message: "Content-Type must be multipart/form-data",
+        message: "Plant name or image URL missing",
       };
       return;
     }
 
-    // Get the form data value
-    const formData = await body.value.read({
-      maxFileSize: 10_000_000, // 10MB limit
-    });
+    // Fetch the image from Supabase storage
+    const imageResponse = await fetch(image_url);
 
-    if (
-      !formData.files ||
-      formData.files.length === 0 ||
-      !formData.fields.plant_name
-    ) {
-      ctx.response.status = 400;
-      ctx.response.body = {
-        status: "error",
-        message: "No file uploaded",
-      };
-      return;
-    }
-
-    const file = formData.files[0];
-    const plantName = formData.fields.plant_name;
-
-    if (!file) {
-      ctx.response.status = 400;
-      ctx.response.body = {
-        status: "error",
-        message: "No file uploaded",
-      };
-      return;
-    }
-
-    let fileContent: Uint8Array;
-
-    if (file.content) {
-      fileContent = file.content; // Use content if available
-    } else if (file.filename) {
-      try {
-        console.log("reading using Deno with file name ", file.filename);
-        fileContent = await Deno.readFile(file.filename); // Fallback if content is missing
-      } catch (error) {
-        console.error("Error reading file from path:", error);
-        ctx.response.status = 500;
-        ctx.response.body = { error: "Failed to read uploaded file" };
-        return;
-      }
-    } else {
-      ctx.response.status = 400;
-      ctx.response.body = { error: "Invalid file upload" };
-      return;
-    }
-
-    /*try {
-      // Read the file content from the temporary file path
-      const fileContent = await Deno.readFile(file?.filename!);
-
-      // Attach the content back to the file object
-      file.content = fileContent;
-
-      // Proceed with further processing (e.g., uploading to storage, making predictions, etc.)
-      ctx.response.status = 200;
-      ctx.response.body = { message: "File processed successfully" };
-    } catch (error) {
-      console.error("Error reading file:", error);
+    if (!imageResponse.ok) {
       ctx.response.status = 500;
-      ctx.response.body = { error: "Failed to read uploaded file" };
-    }*/
-
-    // Generate a unique filename for the image
-    const timestamp = new Date().getTime();
-    const fileExtension = file.filename?.split(".").pop() || "jpg";
-    const uniqueFileName = `${plantName.replace(
-      /\s+/g,
-      "_"
-    )}_${timestamp}.${fileExtension}`;
-
-    // Ensure file.content is defined
-    if (!fileContent) {
-      ctx.response.status = 400;
-      ctx.response.body = {
-        error: "File content is missing",
-      };
+      ctx.response.body = { error: "Failed to fetch image from Supabase " };
       return;
     }
 
-    // Check if file.content is actually a Uint8Array
-    if (!(fileContent instanceof Uint8Array)) {
-      console.error("File content is not a Uint8Array:", typeof file.content);
-
-      // Try to convert to Uint8Array if possible
-      let contentBuffer: Uint8Array;
-      if (typeof fileContent === "string") {
-        // Convert string to Uint8Array using TextEncoder
-        contentBuffer = new TextEncoder().encode(fileContent);
-      } else if (fileContent && fileContent instanceof ArrayBuffer) {
-        // Convert ArrayBuffer to Uint8Array
-        contentBuffer = new Uint8Array(fileContent);
-      } else {
-        ctx.response.status = 500;
-        ctx.response.body = {
-          error: "File content is in an unsupported format",
-        };
-        return;
-      }
-
-      file.content = contentBuffer;
-    }
-
-    // Upload the image to Supabase Storage
-    const imageUrl = await uploadImageToSupabase(file.content!, uniqueFileName);
+    // Step 2: Convert image to buffer (Uint8Array)
+    const imageBuffer = new Uint8Array(await imageResponse.arrayBuffer());
 
     // Process the image directly from memory for prediction
     let imageBase64;
     try {
-      imageBase64 = await encodeBase64FromBuffer(file.content!);
+      imageBase64 = await encodeBase64FromBuffer(imageBuffer);
     } catch (encodeError: any) {
       console.error("Base64 encoding error:", encodeError);
       ctx.response.status = 500;
@@ -163,13 +67,16 @@ export async function predictPlantDisease(ctx: Context) {
       (a, b) => parseFloat(b.confidence) - parseFloat(a.confidence)
     )[0];
 
+    // Extract just the filename or a shortened version of the URL to avoid exceeding database column limits
+    const imagePathShortened = extractImageIdentifier(image_url);
+
     // Save diagnosis to database
     const diagnosis = await saveDiagnosis({
-      plant_name: plantName,
+      plant_name: plant_name,
       predictions: formattedPredictions,
       disease_name: disease.label || "Unknown",
       treatment: disease.description || "No treatment information available",
-      image_path: imageUrl,
+      image_path: imagePathShortened,
     });
 
     const result: PredictionResult = {

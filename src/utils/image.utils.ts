@@ -60,3 +60,22 @@ export function encodeBase64FromBuffer(
     }
   }
 }
+
+// Helper function to extract a shorter identifier from the image URL
+export function extractImageIdentifier(imageUrl: string): string {
+  try {
+    // Option 1: Extract just the filename from the URL
+    const urlParts = imageUrl.split("/");
+    const filename = urlParts[urlParts.length - 1];
+
+    // If the filename is still too long, you could truncate it
+    if (filename.length > 200) {
+      return filename.substring(0, 200);
+    }
+
+    return filename;
+  } catch (e) {
+    // Fallback: If parsing fails, just truncate the original URL
+    return imageUrl.substring(0, 200);
+  }
+}
