@@ -74,7 +74,7 @@ export async function initDB() {
     console.log("Database pool successfully initialized");
 
     // Create plants_diagnoses table if it doesn't exist
-    await (client ? client : poolClient).queryObject(`
+    await poolClient.queryObject(`
       CREATE TABLE IF NOT EXISTS plants_diagnoses (
         id VARCHAR(255) PRIMARY KEY,
         plant_name VARCHAR(255) NOT NULL,
