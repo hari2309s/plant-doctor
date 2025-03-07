@@ -23,7 +23,9 @@ function getConnectionConfig(url: string) {
     database: dbUrl.pathname.substring(1),
     tls: {
       enabled: true, // Always use TLS with Supabase
-      enforce: true, // Enforce TLS for Supabase
+      enforce: false, // Don't enforce it strictly
+      caCertificates: [], // No need to specify CA certs explicitly
+      rejectUnauthorized: false, // Don't reject unauthorized certs (for development)
     },
     max: 20, // Set maximum number of clients
     idleTimeoutMillis: 30000,
