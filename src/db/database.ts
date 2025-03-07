@@ -32,8 +32,8 @@ export async function initDB() {
       `Database connection attempt ${connectionAttempts}/${MAX_ATTEMPTS}`
     );
 
-    // Try a simple client connection first
     const dbUrl = new URL(POSTGRES_URL);
+    // Try a simple client connection first
     const client = new Client({
       user: dbUrl.username,
       password: dbUrl.password,
@@ -49,9 +49,10 @@ export async function initDB() {
     console.log(
       `Attempting to connect to ${dbUrl.hostname}:${dbUrl.port || 5432}`
     );
+
     await client.connect();
+
     console.log("Single client connection successful!");
-    await client.end();
 
     // Now try a pool
     pool = new Pool(
@@ -69,49 +70,11 @@ export async function initDB() {
     ); // Reduce max connections to 2
 
     const poolClient = await pool.connect();
-    poolClient.release();
 
     console.log("Database pool successfully initialized");
-    isConnecting = false;
-    return pool;
-  } catch (error) {
-    console.error("Database connection error:", error);
-    isConnecting = false;
-    pool = null;
-
-    return null;
-  }
-  /*try {
-    // Parse the connection string into separate components
-    const dbUrl = new URL(POSTGRES_URL);
-    const username = dbUrl.username;
-    const password = dbUrl.password;
-    const hostname = dbUrl.hostname;
-    const port = Number(dbUrl.port) || 5432;
-    const database = dbUrl.pathname.substring(1); // Remove the leading '/'
-
-    // Use a connection pool instead of a single client
-    pool = new Pool(
-      {
-        user: username,
-        password: password,
-        hostname: hostname,
-        port: port,
-        database: database,
-        tls: {
-          enabled: true,
-          enforce: false,
-        },
-      },
-      3, // Maximum connections in the pool
-      true
-    ); // Connect immediately to verify
-
-    // Connect to the pool and get a client
-    const client = await pool.connect();
 
     // Create plants_diagnoses table if it doesn't exist
-    await client.queryObject(`
+    await (client ? client : poolClient).queryObject(`
       CREATE TABLE IF NOT EXISTS plants_diagnoses (
         id VARCHAR(255) PRIMARY KEY,
         plant_name VARCHAR(255) NOT NULL,
@@ -126,12 +89,17 @@ export async function initDB() {
 
     console.log("Diagnosis table created or already exists");
 
-    client.release();
+    poolClient.release();
+    await client.end();
+    isConnecting = false;
+
     return pool;
   } catch (error) {
     console.error("Database connection error:", error);
-    throw error;
-  }*/
+    isConnecting = false;
+    pool = null;
+    return null;
+  }
 }
 
 // Get DB client

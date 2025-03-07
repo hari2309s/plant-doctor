@@ -5,6 +5,7 @@ import { PredictionResult } from "@/models/prediction.model.ts";
 import { Context } from "../../deps.ts";
 import { config } from "@/utils/config.ts";
 import { saveDiagnosis } from "@/services/diagnosis.service.ts";
+import { uploadImageToSupabase } from "@/services/storage.service.ts";
 
 const HF_MODEL_ID = config.HUGGING_FACE_MODEL_ID;
 
@@ -53,7 +54,66 @@ export async function predictPlantDisease(ctx: Context) {
       return;
     }
 
-    // Process the image directly from memory
+    try {
+      // Read the file content from the temporary file path
+      const fileContent = await Deno.readFile(file?.filename!);
+
+      // Attach the content back to the file object
+      file.content = fileContent;
+
+      // Proceed with further processing (e.g., uploading to storage, making predictions, etc.)
+      ctx.response.status = 200;
+      ctx.response.body = { message: "File processed successfully" };
+    } catch (error) {
+      console.error("Error reading file:", error);
+      ctx.response.status = 500;
+      ctx.response.body = { error: "Failed to read uploaded file" };
+    }
+
+    // Generate a unique filename for the image
+    const timestamp = new Date().getTime();
+    const fileExtension = file.filename?.split(".").pop() || "jpg";
+    const uniqueFileName = `${plantName.replace(
+      /\s+/g,
+      "_"
+    )}_${timestamp}.${fileExtension}`;
+
+    // Ensure file.content is defined
+    if (!file.content) {
+      ctx.response.status = 400;
+      ctx.response.body = {
+        error: "File content is missing",
+      };
+      return;
+    }
+
+    // Check if file.content is actually a Uint8Array
+    if (!(file.content instanceof Uint8Array)) {
+      console.error("File content is not a Uint8Array:", typeof file.content);
+
+      // Try to convert to Uint8Array if possible
+      let contentBuffer: Uint8Array;
+      if (typeof file.content === "string") {
+        // Convert string to Uint8Array using TextEncoder
+        contentBuffer = new TextEncoder().encode(file.content);
+      } else if (file.content && file.content instanceof ArrayBuffer) {
+        // Convert ArrayBuffer to Uint8Array
+        contentBuffer = new Uint8Array(file.content);
+      } else {
+        ctx.response.status = 500;
+        ctx.response.body = {
+          error: "File content is in an unsupported format",
+        };
+        return;
+      }
+
+      file.content = contentBuffer;
+    }
+
+    // Upload the image to Supabase Storage
+    const imageUrl = await uploadImageToSupabase(file.content!, uniqueFileName);
+
+    // Process the image directly from memory for prediction
     let imageBase64;
     try {
       imageBase64 = await encodeBase64FromBuffer(file.content!);
@@ -87,9 +147,9 @@ export async function predictPlantDisease(ctx: Context) {
     const diagnosis = await saveDiagnosis({
       plant_name: plantName,
       predictions: formattedPredictions,
-      disease_name: disease.label,
-      treatment: disease.description,
-      image_path: "/uploads",
+      disease_name: disease.label || "Unknown",
+      treatment: disease.description || "No treatment information available",
+      image_path: imageUrl,
     });
 
     const result: PredictionResult = {

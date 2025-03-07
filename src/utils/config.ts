@@ -12,6 +12,9 @@ export const config = {
   HUGGING_FACE_MODEL_ID:
     Deno.env.get("HUGGING_FACE_MODEL_ID") || "microsoft/resnet-50",
   LOG_LEVEL: Deno.env.get("LOG_LEVEL") || "info",
+  SUPABASE_URL:
+    Deno.env.get("SUPABASE_URL") || "https://tztqrwfrxgdnghfvdluj.supabase.co",
+  SUPABASE_SERVICE_ROLE_KEY: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "key",
 };
 
 /**
