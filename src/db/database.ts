@@ -42,6 +42,7 @@ export async function initDB() {
       database: dbUrl.pathname.substring(1),
       tls: {
         enabled: true,
+        enforce: false,
       },
     });
 

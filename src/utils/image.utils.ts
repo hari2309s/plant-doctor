@@ -36,7 +36,7 @@ export function isImageFile(contentType: string): boolean {
  * @param buffer The binary data as Uint8Array
  * @returns A Promise that resolves to the base64-encoded string
  */
-export function encodeBase64FromBuffer(buffer: Uint8Array): string {
+/*export function encodeBase64FromBuffer(buffer: Uint8Array): string {
   // Convert Uint8Array to base64 string
   // In Deno, we can use the built-in btoa function with TextDecoder
   const uint8Array = new Uint8Array(buffer);
@@ -47,4 +47,49 @@ export function encodeBase64FromBuffer(buffer: Uint8Array): string {
   const base64 = btoa(binary);
   console.log("base 46", base64);
   return base64;
+}*/
+
+/**
+ * Encodes a buffer directly to base64 using Deno's encoding APIs
+ * @param buffer The image buffer to encode
+ * @returns Promise with base64 encoded string
+ */
+export function encodeBase64FromBuffer(buffer: Uint8Array): string {
+  try {
+    // Use Deno's built-in encode function
+    const base64Encoded = btoa(
+      Array.from(buffer)
+        .map((byte) => String.fromCharCode(byte))
+        .join("")
+    );
+
+    // Determine mime type from buffer (simple implementation - you might need to enhance this)
+    let mimeType = "image/jpeg"; // Default
+
+    // Very basic mime type detection from magic numbers
+    if (buffer.length > 4) {
+      // Check for PNG
+      if (
+        buffer[0] === 0x89 &&
+        buffer[1] === 0x50 &&
+        buffer[2] === 0x4e &&
+        buffer[3] === 0x47
+      ) {
+        mimeType = "image/png";
+      }
+      // Check for JPEG
+      else if (buffer[0] === 0xff && buffer[1] === 0xd8) {
+        mimeType = "image/jpeg";
+      }
+      // Check for GIF
+      else if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46) {
+        mimeType = "image/gif";
+      }
+    }
+
+    return `data:${mimeType};base64,${base64Encoded}`;
+  } catch (error: any) {
+    console.error("Error encoding image to base64:", error);
+    throw new Error(`Failed to encode image: ${error.message}`);
+  }
 }
