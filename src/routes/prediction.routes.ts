@@ -4,7 +4,7 @@ import { predictPlantDisease } from "@/controllers/prediction.controller.ts";
 const predictionRoutes = new Router();
 
 const corsOptions = {
-  origin: "*", // Allow any origin for development (restrict this in production)
+  origin: "hari2309s.github.io/plant-doctor-frontend",
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "Accept"],
   credentials: true,
