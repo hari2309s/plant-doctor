@@ -26,7 +26,7 @@ export const config = {
   // Database configuration - explicitly add these for clarity
   DATABASE_URL:
     Deno.env.get("DATABASE_URL") ||
-    "postgresql://postgres:vaqzap-hajru0-peCdom@db.tztqrwfrxgdnghfvdluj.supabase.co:5432/postgres?sslmode=require",
+    "postgresql://postgres:vaqzap-hajru0-peCdom@db.tztqrwfrxgdnghfvdluj.supabase.co:5432/postgres",
 
   // CORS configuration
   ALLOWED_ORIGINS: Deno.env.get("ALLOWED_ORIGINS")
@@ -96,7 +96,7 @@ export function getDatabaseConfig() {
       database: dbUrl.pathname.substring(1),
       tls: {
         enabled: true,
-        enforce: false,
+        enforce: true,
       },
     };
   } catch (error) {
