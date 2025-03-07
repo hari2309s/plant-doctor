@@ -1,4 +1,4 @@
-import { config } from "@/utils/config.ts";
+import { config } from "@/utils/config.utils.ts";
 
 const SUPABASE_URL = config.SUPABASE_URL;
 const SUPABASE_KEY = config.SUPABASE_SERVICE_ROLE_KEY;

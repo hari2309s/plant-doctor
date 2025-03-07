@@ -1,4 +1,4 @@
-import { config } from "@/utils/config.ts";
+import { config } from "@/utils/config.utils.ts";
 
 const HF_API_KEY = config.HUGGING_FACE_API_KEY;
 const HF_MODEL_ID = config.HUGGING_FACE_MODEL_ID;

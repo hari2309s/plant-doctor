@@ -6,8 +6,8 @@ import { getPredictionFromHuggingFace } from "@/services/huggingface.service.ts"
 import { getDiseaseTreatment } from "@/models/disease.model.ts";
 import { PredictionResult } from "@/models/prediction.model.ts";
 import { Context } from "../../deps.ts";
-import { config } from "@/utils/config.ts";
 import { saveDiagnosis } from "@/services/diagnosis.service.ts";
+import { config } from "@/utils/config.utils.ts";
 
 const HF_MODEL_ID = config.HUGGING_FACE_MODEL_ID;
 
