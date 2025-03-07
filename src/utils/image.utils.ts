@@ -45,6 +45,6 @@ export function encodeBase64FromBuffer(buffer: Uint8Array): string {
     .join("");
 
   const base64 = btoa(binary);
-
+  console.log("base 46", base64);
   return base64;
 }
