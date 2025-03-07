@@ -12,7 +12,17 @@ await initDB();
 const app = new Application();
 const PORT = config.PORT;
 
-// Configure CORS
+// Allow origins that will access your API
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  // Your deployed Next.js app domain(s)
+  "https://hari2309s.github.io/plant-doctor-frontend",
+  // Include null for local file testing
+  "null",
+];
+
+/*// Configure CORS
 app.use(
   oakCors({
     origin: [
@@ -22,7 +32,38 @@ app.use(
     ],
     optionsSuccessStatus: 200,
   })
-);
+);*/
+
+// CORS middleware - apply this before any routes
+app.use(async (ctx, next) => {
+  const origin = ctx.request.headers.get("Origin") || "";
+
+  // Check if the origin is allowed or use "*" during development
+  // For production, use specific origins instead of "*"
+  ctx.response.headers.set(
+    "Access-Control-Allow-Origin",
+    allowedOrigins.includes(origin) ? origin : "*"
+  );
+
+  // Essential CORS headers
+  ctx.response.headers.set(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS"
+  );
+  ctx.response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, Accept, X-Requested-With"
+  );
+  ctx.response.headers.set("Access-Control-Max-Age", "3600");
+
+  // Handle preflight requests
+  if (ctx.request.method === "OPTIONS") {
+    ctx.response.status = 204; // No content for OPTIONS
+    return;
+  }
+
+  await next();
+});
 
 // Swagger UI HTML template
 const swaggerHtml = `
