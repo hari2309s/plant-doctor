@@ -16,23 +16,9 @@ const PORT = config.PORT;
 const allowedOrigins = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
-  // Your deployed Next.js app domain(s)
   "https://hari2309s.github.io/plant-doctor-frontend",
-  // Include null for local file testing
   "null",
 ];
-
-/*// Configure CORS
-app.use(
-  oakCors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:8000",
-      "https://hari2309s.github.io/plant-doctor-frontend/",
-    ],
-    optionsSuccessStatus: 200,
-  })
-);*/
 
 // CORS middleware - apply this before any routes
 app.use(async (ctx, next) => {

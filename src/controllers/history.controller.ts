@@ -36,7 +36,7 @@ export async function getHistoryById(ctx: any) {
       return;
     }
 
-    const diagnosis = await getDiagnosisById(parseInt(id));
+    const diagnosis = await getDiagnosisById(parseInt(id).toString());
     if (!diagnosis) {
       ctx.response.status = 404;
       ctx.response.body = { error: "Diagnosis not found" };

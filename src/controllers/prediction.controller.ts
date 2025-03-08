@@ -34,7 +34,7 @@ export async function predictPlantDisease(ctx: Context) {
       return;
     }
 
-    // Step 2: Convert image to buffer (Uint8Array)
+    // Convert image to buffer (Uint8Array)
     const imageBuffer = new Uint8Array(await imageResponse.arrayBuffer());
 
     // Process the image directly from memory for prediction
