@@ -22,7 +22,7 @@ export async function uploadImageToSupabase(
 
     // Create a unique file path with timestamp to avoid duplicates
     const timestamp = new Date().getTime();
-    const filePath = `uploads/${timestamp}_${safeFileName}`;
+    const filePath = `${timestamp}_${safeFileName}`;
 
     // Construct the API URL for Supabase Storage
     const url = `${SUPABASE_URL}/storage/v1/object/${BUCKET_NAME}/${filePath}`;
