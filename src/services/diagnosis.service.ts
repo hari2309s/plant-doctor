@@ -1,4 +1,4 @@
-import { getDB } from "@/db/database.ts";
+import { getDB } from "@/db/db.ts";
 
 interface Prediction {
   confidence: string;
@@ -7,56 +7,79 @@ interface Prediction {
 }
 
 interface Diagnosis {
-  id?: number;
+  id?: string;
   plant_name: string;
   predictions: Prediction[];
   disease_name: string;
   image_path: string;
   treatment?: string;
-  additional_info?: Record<string, unknown>;
+  additional_info?: Record<string, any>;
   created_at?: Date;
 }
 
 export async function saveDiagnosis(diagnosis: Diagnosis): Promise<Diagnosis> {
-  const client = await getDB();
+  const supabase = await getDB();
 
-  const uuid = crypto.randomUUID();
+  // Generate UUID if not provided
+  const id = diagnosis.id || crypto.randomUUID();
 
-  const result = await client.queryObject<Diagnosis>(
-    `INSERT INTO plants_diagnoses (id, plant_name, predictions, disease_name, image_path, treatment, additional_info)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
-    RETURNING *`,
-    [
-      uuid,
-      diagnosis.plant_name,
-      diagnosis.predictions ? JSON.stringify(diagnosis.predictions) : "[]",
-      diagnosis.disease_name,
-      diagnosis.image_path,
-      diagnosis.treatment,
-      diagnosis.additional_info
-        ? JSON.stringify(diagnosis.additional_info)
-        : "{}",
-    ]
-  );
+  const { data, error } = await supabase
+    .from("plants_diagnoses")
+    .insert([
+      {
+        id,
+        plant_name: diagnosis.plant_name,
+        predictions: diagnosis.predictions || [],
+        disease_name: diagnosis.disease_name,
+        image_path: diagnosis.image_path,
+        treatment: diagnosis.treatment,
+        additional_info: diagnosis.additional_info || {},
+      },
+    ])
+    .select()
+    .single();
 
-  return result.rows[0];
+  if (error) {
+    console.error("Error saving diagnosis:", error);
+    throw new Error(`Failed to save diagnosis: ${error.message}`);
+  }
+
+  return data;
 }
 
 export async function getAllDiagnoses(): Promise<Diagnosis[]> {
-  const client = await getDB();
-  const result = await client.queryObject<Diagnosis>(
-    `SELECT * FROM plants_diagnoses ORDER BY created_at DESC`
-  );
+  const supabase = await getDB();
 
-  return result.rows;
+  const { data, error } = await supabase
+    .from("plants_diagnoses")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error retrieving diagnoses:", error);
+    throw new Error(`Failed to retrieve diagnoses: ${error.message}`);
+  }
+
+  return data || [];
 }
 
-export async function getDiagnosisById(id: number): Promise<Diagnosis | null> {
-  const client = await getDB();
-  const result = await client.queryObject<Diagnosis>(
-    `SELECT * FROM plants_diagnoses WHERE id = $1`,
-    [id]
-  );
+export async function getDiagnosisById(id: string): Promise<Diagnosis | null> {
+  const supabase = await getDB();
 
-  return result.rows.length > 0 ? result.rows[0] : null;
+  const { data, error } = await supabase
+    .from("plants_diagnoses")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    // If the error is "No rows returned" (404), return null
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    console.error("Error retrieving diagnosis by ID:", error);
+    throw new Error(`Failed to retrieve diagnosis: ${error.message}`);
+  }
+
+  return data;
 }

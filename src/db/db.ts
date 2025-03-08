@@ -1,210 +1,257 @@
-import { Pool, Client } from "../../deps.ts";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { config } from "@/utils/config.utils.ts";
 
-// Get the PostgreSQL connection string from environment variables
-const POSTGRES_URL = config.DATABASE_URL;
+// Get the Supabase URL and key from environment variables
+const SUPABASE_URL = config.SUPABASE_URL;
+const SUPABASE_KEY = config.SUPABASE_SERVICE_ROLE_KEY;
 
-let pool: Pool | null = null;
-let isConnecting = false;
+// Validate environment variables
+if (!SUPABASE_URL) {
+  console.error("SUPABASE_URL environment variable is not set");
+}
+
+if (!SUPABASE_KEY) {
+  console.error("SUPABASE_KEY environment variable is not set");
+}
+
+// Create a singleton Supabase client
+let supabase: SupabaseClient<any, "public", any> | null = null;
+let isInitialized = false;
 let connectionAttempts = 0;
 const MAX_ATTEMPTS = config.DB_CONNECTION_RETRIES || 5;
 const RETRY_DELAY = config.DB_CONNECTION_RETRY_DELAY || 2000;
 
-// Parse connection info from URL
-function getConnectionConfig(url: string) {
-  const dbUrl = new URL(url);
-
-  // Supabase-specific configuration
-  return {
-    user: dbUrl.username,
-    password: dbUrl.password,
-    hostname: dbUrl.hostname,
-    port: Number(dbUrl.port) || 5432,
-    database: dbUrl.pathname.substring(1),
-    tls: {
-      enabled: true, // Always use TLS with Supabase
-      enforce: false, // Don't enforce it strictly
-      caCertificates: [], // No need to specify CA certs explicitly
-      rejectUnauthorized: false, // Don't reject unauthorized certs (for development)
-    },
-    max: 20, // Set maximum number of clients
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 10000,
-    application_name: "plant-doctor-app", // Help identify your connection in Supabase logs
-    connection_timeout: 30, // 30 seconds timeout for Supabase
-    idle_timeout: 60, // 60 seconds idle timeout
-    options: `--search_path=public`, // Ensure we're using the public schema
-  };
-}
-
-// Initialize database connection
+// Initialize Supabase client
 export async function initDB() {
-  if (isConnecting) {
-    console.log("Database connection already in progress");
-    return null;
-  }
+  if (isInitialized && supabase) return supabase;
 
   if (connectionAttempts >= MAX_ATTEMPTS) {
-    console.log(
-      "Maximum connection attempts reached, skipping database initialization"
+    console.error(
+      "Maximum connection attempts reached, database initialization failed"
     );
     return null;
   }
 
-  isConnecting = true;
   connectionAttempts++;
 
   try {
     console.log(
-      `Database connection attempt ${connectionAttempts}/${MAX_ATTEMPTS}`
+      `Supabase connection attempt ${connectionAttempts}/${MAX_ATTEMPTS}`
     );
 
-    const connectionConfig = getConnectionConfig(POSTGRES_URL);
-    console.log(
-      `Attempting to connect to Supabase PostgreSQL at ${connectionConfig.hostname}`
-    );
-
-    // Try a simple client connection first to verify credentials
-    const client = new Client(connectionConfig);
-
-    await client.connect();
-    console.log("Single client connection to Supabase successful!");
-
-    // Now create the connection pool
-    // Supabase recommends a smaller connection pool size
-    const poolSize = config.DB_POOL_SIZE || 3; // Small default pool size for Supabase
-
-    pool = new Pool(connectionConfig, poolSize);
-
-    // Test the pool by getting a client
-    const poolClient = await pool.connect();
-    console.log(
-      `Database pool successfully initialized with ${poolSize} connections`
-    );
-
-    // Create plants_diagnoses table if it doesn't exist
-    // Using TEXT for image_path instead of VARCHAR(255) to avoid length issues
-    await poolClient.queryObject(`
-      CREATE TABLE IF NOT EXISTS plants_diagnoses (
-        id VARCHAR(255) PRIMARY KEY,
-        plant_name VARCHAR(255) NOT NULL,
-        predictions JSONB NOT NULL,
-        disease_name VARCHAR(255) NOT NULL,
-        image_path TEXT NOT NULL,
-        treatment TEXT,
-        additional_info JSONB,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-    console.log("Diagnosis table created or already exists");
-
-    // Set up RLS policy for the table if using Supabase Auth
-    // This is optional but recommended for Supabase projects
-    try {
-      await poolClient.queryObject(`
-        ALTER TABLE plants_diagnoses ENABLE ROW LEVEL SECURITY;
-      `);
-      console.log("Row Level Security enabled for diagnoses table");
-    } catch (err) {
-      // It's okay if this fails, it might mean we don't have privileges
-      console.log(
-        "Note: Could not enable RLS (may require superuser privileges)"
+    // Validate Supabase URL and key are provided
+    if (!SUPABASE_URL || !SUPABASE_KEY) {
+      throw new Error(
+        "Supabase URL or key is not set in environment variables"
       );
     }
 
-    poolClient.release();
-    await client.end();
+    console.log(`Connecting to Supabase at ${SUPABASE_URL}`);
+
+    // Create the Supabase client
+    supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
+
+    // Test the connection with a simple query
+    const { data, error } = await supabase
+      .from("plants_diagnoses")
+      .select("id")
+      .limit(1);
+
+    if (error) throw error;
+
+    console.log("Successfully connected to Supabase");
+
+    // Ensure the plants_diagnoses table exists
+    await ensureDiagnosesTableExists();
 
     // Reset connection attempts on success
     connectionAttempts = 0;
-    isConnecting = false;
+    isInitialized = true;
 
-    return pool;
-  } catch (error) {
-    console.error("Supabase database connection error:", error);
-    isConnecting = false;
-    pool = null;
+    return supabase;
+  } catch (error: any) {
+    console.error("Supabase connection error:", error);
+
+    // Handle "table doesn't exist" error separately
+    if (
+      error.message &&
+      error.message.includes("does not exist") &&
+      error.message.includes("plants_diagnoses")
+    ) {
+      console.log(
+        "The plants_diagnoses table doesn't exist yet, will create it"
+      );
+      await ensureDiagnosesTableExists();
+      isInitialized = true;
+      return supabase;
+    }
+
+    supabase = null;
+    isInitialized = false;
 
     // Implement retry with delay
     if (connectionAttempts < MAX_ATTEMPTS) {
       console.log(`Retrying in ${RETRY_DELAY / 1000} seconds...`);
-      setTimeout(() => {
-        // Reset the isConnecting flag for next attempt
-        isConnecting = false;
-      }, RETRY_DELAY);
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+      return initDB(); // Recursive call to retry
     }
 
     return null;
   }
 }
 
-// Get DB client with retry logic
-export async function getDB() {
-  if (pool) {
-    try {
-      return await pool.connect();
-    } catch (err) {
-      console.warn("Error getting client from existing Supabase pool:", err);
-      pool = null;
-    }
-  }
-
-  // Try to initialize again if needed
-  for (let i = 0; i < MAX_ATTEMPTS; i++) {
-    await initDB();
-    if (pool) {
-      try {
-        return await (pool as Pool).connect();
-      } catch (err) {
-        console.warn(
-          `Failed to get Supabase client after initialization (attempt ${
-            i + 1
-          }):`,
-          err
-        );
-        if (i < MAX_ATTEMPTS - 1) {
-          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
-          pool = null;
-        }
-      }
-    } else if (i < MAX_ATTEMPTS - 1) {
-      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
-    }
-  }
-
-  throw new Error(
-    "Supabase database connection unavailable after multiple attempts"
-  );
-}
-
-// Health check function specifically for Supabase
-export async function checkDBConnection() {
-  let client = null;
+// Ensure the diagnoses table exists using SQL via Supabase's REST API
+async function ensureDiagnosesTableExists() {
   try {
-    client = await getDB();
-    console.log(`Connected to Supabase PostgreSQL`);
-    return true;
-  } catch (err) {
-    console.error("Supabase database health check failed:", err);
-    pool = null;
-    return false;
-  } finally {
-    if (client) {
-      client.release();
+    if (!supabase) {
+      supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        },
+      });
     }
+
+    const { error } = await supabase.rpc(
+      "create_plants_diagnoses_if_not_exists",
+      {}
+    );
+
+    if (error && !error.message.includes("function does not exist")) {
+      throw error;
+    }
+
+    if (error && error.message.includes("function does not exist")) {
+      // Create the function first
+      const { error: functionError } = await supabase.rpc(
+        "create_rpc_function",
+        {}
+      );
+      if (
+        functionError &&
+        !functionError.message.includes("function does not exist")
+      ) {
+        throw functionError;
+      }
+
+      // Now try creating the table again
+      const { error: secondAttemptError } = await supabase.rpc(
+        "create_plants_diagnoses_if_not_exists",
+        {}
+      );
+      if (secondAttemptError) {
+        console.warn(
+          "Could not create table automatically:",
+          secondAttemptError
+        );
+        console.log(
+          "Proceeding anyway, assuming table exists or will be created by migrations"
+        );
+      }
+    }
+
+    console.log("Ensured plants_diagnoses table exists");
+  } catch (error) {
+    console.warn("Error ensuring plants_diagnoses table exists:", error);
+    console.log(
+      "Proceeding anyway, assuming table exists or will be created by migrations"
+    );
   }
 }
 
-// Function to gracefully close all database connections
-export async function closeDBConnections() {
-  if (pool) {
-    try {
-      await pool.end();
-      console.log("All Supabase database connections closed");
-    } catch (err) {
-      console.error("Error closing Supabase database connections:", err);
-    } finally {
-      pool = null;
+// Get DB client
+export async function getDB() {
+  try {
+    if (!supabase) {
+      supabase = await initDB();
+      if (!supabase) {
+        throw new Error("Failed to initialize Supabase connection");
+      }
     }
+
+    return supabase;
+  } catch (error: any) {
+    console.error("Error getting Supabase client:", error);
+    supabase = null;
+    isInitialized = false;
+    throw new Error("Supabase connection unavailable: " + error.message);
   }
+}
+
+// Health check function
+export async function checkDBConnection() {
+  try {
+    const db = await getDB();
+    const { data, error } = await db
+      .from("plants_diagnoses")
+      .select("id")
+      .limit(1);
+
+    if (error) throw error;
+
+    console.log("Supabase health check passed");
+    return true;
+  } catch (error) {
+    console.error("Supabase health check failed:", error);
+    supabase = null;
+    isInitialized = false;
+    return false;
+  }
+}
+
+// Function to close connections (for clean shutdowns)
+export async function closeDBConnections() {
+  try {
+    console.log("Supabase doesn't require explicit connection closing");
+    supabase = null;
+    isInitialized = false;
+    return true;
+  } catch (error) {
+    console.error("Error resetting Supabase client:", error);
+    return false;
+  }
+}
+
+// Sample functions for working with the plants_diagnoses table
+
+// Store plant diagnosis
+export async function storePlantDiagnosis(diagnosis: any) {
+  const db = await getDB();
+  const { data, error } = await db
+    .from("plants_diagnoses")
+    .insert([diagnosis])
+    .select();
+
+  if (error) throw error;
+  return data[0];
+}
+
+// Get diagnosis by ID
+export async function getDiagnosisById(id: string) {
+  const db = await getDB();
+  const { data, error } = await db
+    .from("plants_diagnoses")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+// Get all diagnoses
+export async function getAllDiagnoses() {
+  const db = await getDB();
+  const { data, error } = await db
+    .from("plants_diagnoses")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data;
 }

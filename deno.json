@@ -5,7 +5,8 @@
     "test": "deno run --allow-net --allow-read --allow-env scripts/test.ts"
   },
   "imports": {
-    "@/": "./src/"
+    "@/": "./src/",
+    "@supabase/supabase-js": "jsr:@supabase/supabase-js@^2.49.1"
   },
   "fmt": {
     "files": {
