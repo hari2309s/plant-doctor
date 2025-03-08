@@ -10,6 +10,7 @@ let connectionAttempts = 0;
 const MAX_ATTEMPTS = config.DB_CONNECTION_RETRIES || 5;
 const RETRY_DELAY = config.DB_CONNECTION_RETRY_DELAY || 2000;
 let dbUrl: any;
+
 // Simplified connection config for Supabase
 function getConnectionConfig(url: string) {
   try {
@@ -23,6 +24,7 @@ function getConnectionConfig(url: string) {
       database: dbUrl.pathname.substring(1),
       tls: {
         enabled: true,
+        enforce: false,
       },
       application_name: "plant-doctor-app",
     };
@@ -65,6 +67,13 @@ export async function initDB() {
       `Connecting to Supabase PostgreSQL at ${connectionConfig.hostname}`
     );
 
+    console.error("Connection details (sanitized): before failing ", {
+      user: dbUrl.username,
+      hostname: dbUrl.hostname,
+      port: Number(dbUrl.port) || 5432,
+      database: dbUrl.pathname.substring(1),
+      // Don't log the password
+    });
     // Simplified: create pool directly without testing a client first
     const poolSize = config.DB_POOL_SIZE || 3;
     pool = new Pool(connectionConfig, poolSize);
@@ -129,7 +138,7 @@ export async function getDB() {
     return await pool.connect();
   } catch (error: any) {
     console.error("Error getting database client:", error);
-    console.error("Connection details (sanitized):", {
+    console.error("Connection details (sanitized): when failing", {
       user: dbUrl.username,
       hostname: dbUrl.hostname,
       port: Number(dbUrl.port) || 5432,
