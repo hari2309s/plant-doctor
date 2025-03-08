@@ -3,7 +3,7 @@ import { config } from "@/utils/config.utils.ts";
 
 // Get the Supabase URL and key from environment variables
 const SUPABASE_URL = config.SUPABASE_URL;
-const SUPABASE_KEY = config.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_KEY = config.SUPABASE_ANON_KEY;
 
 // Validate environment variables
 if (!SUPABASE_URL) {

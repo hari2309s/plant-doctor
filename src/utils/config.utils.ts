@@ -22,6 +22,7 @@ export const config = {
   SUPABASE_URL:
     Deno.env.get("SUPABASE_URL") || "https://tztqrwfrxgdnghfvdluj.supabase.co",
   SUPABASE_SERVICE_ROLE_KEY: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "key",
+  SUPABASE_ANON_KEY: Deno.env.get("SUPABASE_ANON_KEY") || "key",
 
   // Database configuration - explicitly add these for clarity
   DATABASE_URL:
