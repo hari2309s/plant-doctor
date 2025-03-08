@@ -36,11 +36,11 @@ export const config = {
   // Connection retry configuration
   DB_CONNECTION_RETRIES: parseInt(Deno.env.get("DB_CONNECTION_RETRIES") || "5"),
   DB_CONNECTION_RETRY_DELAY: parseInt(
-    Deno.env.get("DB_CONNECTION_RETRY_DELAY") || "2000"
+    Deno.env.get("DB_CONNECTION_RETRY_DELAY") || "5000"
   ),
 
   // Performance configuration
-  DB_POOL_SIZE: parseInt(Deno.env.get("DB_POOL_SIZE") || "3"),
+  DB_POOL_SIZE: parseInt(Deno.env.get("DB_POOL_SIZE") || "2"),
 
   // API rate limiting
   RATE_LIMIT_MAX: parseInt(Deno.env.get("RATE_LIMIT_MAX") || "100"),

@@ -8,7 +8,7 @@ let pool: Pool | null = null;
 let isConnecting = false;
 let connectionAttempts = 0;
 const MAX_ATTEMPTS = config.DB_CONNECTION_RETRIES || 5;
-const RETRY_DELAY = config.DB_CONNECTION_RETRY_DELAY || 2000;
+const RETRY_DELAY = config.DB_CONNECTION_RETRY_DELAY || 5000;
 let dbUrl: any;
 
 // Simplified connection config for Supabase
@@ -26,11 +26,45 @@ function getConnectionConfig(url: string) {
         enabled: true,
         enforce: false,
       },
+      connection: {
+        socketOptions: {
+          keepAlive: true,
+          keepAliveInitialDelay: 60000, // 60 seconds
+          reuseAddr: true,
+        },
+        attempts: 3,
+        backoff: {
+          min: 1000,
+          max: 5000,
+          factor: 2,
+        },
+      },
       application_name: "plant-doctor-app",
     };
   } catch (error) {
     console.error("Invalid database URL format:", error);
     throw new Error("Invalid database connection string format");
+  }
+}
+
+async function releaseSocketResources() {
+  if (pool) {
+    try {
+      // Get current connection count
+      const client = await pool.connect();
+      const { rows } = await client.queryObject(
+        "SELECT count(*) FROM pg_stat_activity"
+      );
+      console.log(
+        `Active connections before cleanup: ${(rows as Array<any>)[0].count}`
+      );
+      client.release();
+
+      // Give the system time to free up resources
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    } catch (error) {
+      console.error("Error checking connections:", error);
+    }
   }
 }
 
@@ -113,6 +147,8 @@ export async function initDB() {
 
     isConnecting = false;
     pool = null;
+
+    await releaseSocketResources();
 
     // Implement retry with delay
     if (connectionAttempts < MAX_ATTEMPTS) {
