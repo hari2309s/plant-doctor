@@ -9,11 +9,11 @@ let isConnecting = false;
 let connectionAttempts = 0;
 const MAX_ATTEMPTS = config.DB_CONNECTION_RETRIES || 5;
 const RETRY_DELAY = config.DB_CONNECTION_RETRY_DELAY || 2000;
-
+let dbUrl: any;
 // Simplified connection config for Supabase
 function getConnectionConfig(url: string) {
   try {
-    const dbUrl = new URL(url);
+    dbUrl = new URL(url);
 
     return {
       user: dbUrl.username,
@@ -129,6 +129,13 @@ export async function getDB() {
     return await pool.connect();
   } catch (error: any) {
     console.error("Error getting database client:", error);
+    console.error("Connection details (sanitized):", {
+      user: dbUrl.username,
+      hostname: dbUrl.hostname,
+      port: Number(dbUrl.port) || 5432,
+      database: dbUrl.pathname.substring(1),
+      // Don't log the password
+    });
     pool = null; // Reset pool so next attempt will re-initialize
     throw new Error(
       "Supabase database connection unavailable: " + error.message
