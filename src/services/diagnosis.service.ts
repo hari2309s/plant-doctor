@@ -1,4 +1,4 @@
-import { getDB } from "@/db/db.ts";
+import { getDB } from "@/db/database.ts";
 
 interface Prediction {
   confidence: string;

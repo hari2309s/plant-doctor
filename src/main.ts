@@ -4,7 +4,7 @@ import { router } from "@/routes/index.ts";
 import { Application } from "../deps.ts";
 import { openApiSpec } from "@/openapi.ts";
 import { config } from "@/utils/config.utils.ts";
-import { initDB } from "@/db/db.ts";
+import { initDB } from "@/db/database.ts";
 
 // Initialize DB connection
 await initDB();

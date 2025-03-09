@@ -1,7 +1,4 @@
-import {
-  encodeBase64FromBuffer,
-  extractImageIdentifier,
-} from "@/utils/image.utils.ts";
+import { encodeBase64FromBuffer } from "@/utils/image.utils.ts";
 import { getPredictionFromHuggingFace } from "@/services/huggingface.service.ts";
 import { getDiseaseTreatment } from "@/models/disease.model.ts";
 import { PredictionResult } from "@/models/prediction.model.ts";
@@ -67,16 +64,13 @@ export async function predictPlantDisease(ctx: Context) {
       (a, b) => parseFloat(b.confidence) - parseFloat(a.confidence)
     )[0];
 
-    // Extract just the filename or a shortened version of the URL to avoid exceeding database column limits
-    const imagePathShortened = extractImageIdentifier(image_url);
-
     // Save diagnosis to database
     const diagnosis = await saveDiagnosis({
       plant_name: plant_name,
       predictions: formattedPredictions,
       disease_name: disease.label || "Unknown",
       treatment: disease.description || "No treatment information available",
-      image_path: imagePathShortened,
+      image_path: image_url,
     });
 
     const result: PredictionResult = {
