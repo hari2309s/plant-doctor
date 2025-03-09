@@ -4,7 +4,7 @@ const builder = new OpenApiBuilder();
 builder
   .addOpenApiVersion("3.0.0")
   .addInfo({
-    title: "My Deno API",
+    title: "Plant Doctor API",
     version: "1.0.0",
     description: "API documentation for my Deno project",
   })
@@ -18,10 +18,9 @@ builder
             schema: {
               type: "object",
               properties: {
-                file: {
+                image_url: {
                   type: "string",
-                  format: "binary",
-                  description: "Image of the plant for disease prediction",
+                  description: "Signed URL of the image of the plant",
                 },
                 plant_name: {
                   type: "string",
