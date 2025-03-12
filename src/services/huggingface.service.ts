@@ -1,6 +1,7 @@
 import { config } from "@/utils/config.utils.ts";
 const HF_API_KEY = config.HUGGING_FACE_API_KEY;
-const HF_MODEL_ID = config.HUGGING_FACE_MODEL_ID;
+const HF_MODEL_ID =
+  "linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification";
 
 /**
  * Calls the Hugging Face Inference API to get predictions for a plant disease image
