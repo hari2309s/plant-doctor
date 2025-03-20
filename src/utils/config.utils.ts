@@ -23,9 +23,16 @@ export const config = {
   HUGGING_FACE_CHARACTERISTICS_MODEL:
     Deno.env.get("HUGGING_FACE_CHARACTERISTICS_MODEL") ||
     "google/vit-large-patch16-224-in21k",
+  HUGGING_FACE_IMAGE_CLASSIFICATION_MODEL:
+    Deno.env.get("HUGGING_FACE_IMAGE_CLASSIFICATION_MODEL") ||
+    "facebook/deit-base-patch16-224",
+  HUGGING_FACE_PLANT_SPECIFIC_MODEL:
+    Deno.env.get("HUGGING_FACE_PLANT_SPECIFIC_MODEL") ||
+    "google/vit-large-patch16-224",
   HUGGING_FACE_DISEASE_DETECTION_MODEL:
-    Deno.env.get("HUGGING_FACE_CHARACTERISTICS_MODEL") ||
-    "merve/plant-disease-mobilenetv2",
+    Deno.env.get("HUGGING_FACE_DISEASE_DETECTION_MODEL") ||
+    "ozair23/mobilenet_v2_1.0_224-finetuned-plantdisease",
+  //"Carina124/plant-vit-model-1",
 
   // Logging configuration
   LOG_LEVEL: Deno.env.get("LOG_LEVEL") || "info",

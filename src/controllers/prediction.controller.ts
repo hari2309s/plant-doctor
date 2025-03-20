@@ -1,5 +1,5 @@
 import { encodeBase64FromBuffer } from "@/utils/image.utils.ts";
-import { getDiseaseTreatment } from "@/models/disease.model.ts";
+import { getDiseaseTreatment, getLabel } from "@/models/disease.model.ts";
 import { PredictionResult } from "@/models/prediction.model.ts";
 import { Context } from "../../deps.ts";
 import { saveDiagnosis } from "@/services/diagnosis.service.ts";
@@ -49,19 +49,20 @@ export async function predictPlantDisease(ctx: Context) {
 
     // Call Hugging Face API to predict plant disease using the model from the repo
     const predictions = await getPredictionFromHuggingFace(imageBase64);
+    console.log("result ", predictions);
 
     // Format and return the predictions
     // Structure is based on the microsoft/resnet-50 model output
     const formattedPredictions = Array.isArray(predictions)
       ? predictions.map((prediction: { label: string; score: number }) => ({
-          disease: prediction.label,
+          disease: getLabel(prediction.label),
           confidence: (prediction.score * 100).toFixed(2) + "%",
           description: getDiseaseTreatment(prediction.label),
         }))
       : [];
 
     const disease = [...predictions].sort(
-      (a, b) => parseFloat(b.confidence) - parseFloat(a.confidence)
+      (a, b) => parseFloat(b.confidence!) - parseFloat(a.confidence!)
     )[0];
 
     // Save diagnosis to database

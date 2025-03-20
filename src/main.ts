@@ -100,8 +100,6 @@ app.use(router.routes());
 app.use(router.allowedMethods());
 
 // Start server
-console.log(
-  `🌱 Plant Disease Detection API running on http://localhost:${PORT}`
-);
+console.log(`🌱 Plant Doctor API running on http://localhost:${PORT}`);
 
 await app.listen({ port: PORT });
