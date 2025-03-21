@@ -12,17 +12,6 @@ export const config = {
 
   // Hugging Face configuration
   HUGGING_FACE_API_KEY: Deno.env.get("HUGGING_FACE_API_KEY") || "",
-  HUGGING_FACE_MODEL_ID:
-    Deno.env.get("HUGGING_FACE_MODEL_ID") || "microsoft/resnet-50",
-  HUGGING_FACE_PLANT_DETECTION_MODEL:
-    Deno.env.get("HUGGING_FACE_PLANT_DETECTION_MODEL") ||
-    "google/vit-base-patch16-224",
-  HUGGING_FACE_SPECIES_IDENTIFICATION_MODEL:
-    Deno.env.get("HUGGING_FACE_SPECIES_IDENTIFICATION_MODEL") ||
-    "plantnet/plantnet_2_7",
-  HUGGING_FACE_CHARACTERISTICS_MODEL:
-    Deno.env.get("HUGGING_FACE_CHARACTERISTICS_MODEL") ||
-    "google/vit-large-patch16-224-in21k",
   HUGGING_FACE_IMAGE_CLASSIFICATION_MODEL:
     Deno.env.get("HUGGING_FACE_IMAGE_CLASSIFICATION_MODEL") ||
     "facebook/deit-base-patch16-224",
