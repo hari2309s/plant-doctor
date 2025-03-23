@@ -6,7 +6,7 @@ import { saveDiagnosis } from "@/services/diagnosis.service.ts";
 import { config } from "@/utils/config.utils.ts";
 import { getPredictionFromHuggingFace } from "@/services/huggingface.service.ts";
 
-const HF_MODEL_ID = config.HUGGING_FACE_MODEL_ID;
+const HF_MODEL_ID = config.HUGGING_FACE_DISEASE_DETECTION_MODEL;
 
 export async function predictPlantDisease(ctx: Context) {
   try {

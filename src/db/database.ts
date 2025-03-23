@@ -205,7 +205,7 @@ export async function checkDBConnection() {
 }
 
 // Function to close connections (for clean shutdowns)
-export async function closeDBConnections() {
+export function closeDBConnections() {
   try {
     console.log("Supabase doesn't require explicit connection closing");
     supabase = null;
@@ -216,8 +216,6 @@ export async function closeDBConnections() {
     return false;
   }
 }
-
-// Sample functions for working with the plants_diagnoses table
 
 // Store plant diagnosis
 export async function storePlantDiagnosis(diagnosis: any) {
